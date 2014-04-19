@@ -1,4 +1,4 @@
-load File.join(File.dirname(__FILE__), "..", "plugin", "ruby-hl-lvar.vim")
+load File.join(File.dirname(__FILE__), "..", "autoload", "ruby_hl_lvar.vim")
 
 class String
   def should_extract_to(expected)
@@ -57,6 +57,10 @@ describe RubyHlLvar::Extractor do
     context "lvar reference in method class body"
     context "lvar reference in method module body"
     context "method reference in expr should ignored"
+
+    context "lvar reference in module definition" do
+      it { "module A;\nx = 1;\nx; end".should_extract_to [["x", 2, 0], ["x", 3, 0]] }
+    end
 
     it "with complex block parameter like {|a, (b, c)| }"
     it "with multi assignment like a = b = c"

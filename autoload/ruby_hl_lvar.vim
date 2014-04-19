@@ -67,7 +67,7 @@ module RubyHlLvar
       case sexp
       when m = p.match([:program, _1])
         # root
-        m[1].flat_map {|subtree| extract_from_sexp(subtree) }
+        m._1.flat_map {|subtree| extract_from_sexp(subtree) }
       when m = p.match([:assign, [:var_field, [:@ident, _1, _2]], _any])
         # single assignment
         name, (line, col) = m._1, m._2
@@ -85,6 +85,8 @@ module RubyHlLvar
         handle_block_var(m._1) +
           # block body
           m._2.flat_map {|subtree| extract_from_sexp(subtree) }
+      when m = p.match([:module, _any, [:bodystmt, _1, _any, _any, _any]])
+        m._1.flat_map {|subtree| extract_from_sexp(subtree) }
       else
         puts "WARN: Unsupported ast item: #{sexp.inspect}"
         []
