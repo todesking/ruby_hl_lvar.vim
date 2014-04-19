@@ -31,6 +31,9 @@ describe RubyHlLvar::Extractor do
       context "with simple block parameter like {|a, b| }" do
         it { "foo {|a, b| }".should_extract_to [["a", 1, 6], ["b", 1, 9]] }
       end
+      context "with simple block without args" do
+        it { "foo { }".should_extract_to [] }
+      end
       context "with simple block parameter like do|a, b| end"
 
       context "bare lvar reference"
