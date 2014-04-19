@@ -40,6 +40,9 @@ describe RubyHlLvar::Extractor do
       context "with simple block(do ... end) parameter" do
         it { "foo do|a|; end".should_extract_to [["a", 1, 7]] }
       end
+      context "with lvar reference in block body" do
+        it { "foo {|x| x}".should_extract_to [["x", 1, 6], ["x", 1, 9]] }
+      end
 
       context "bare lvar reference"
       context "lvar reference in method call lhs"

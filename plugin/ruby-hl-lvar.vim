@@ -17,6 +17,7 @@ module RubyHlLvar
 
       _1 = p._1
       _2 = p._2
+      _3 = p._3
 
       case sexp
       when m = p.match([:program, _1])
@@ -26,9 +27,13 @@ module RubyHlLvar
         [[name, line, col]]
       when m = p.match([:massign, _1, _2])
         handle_massign_lhs(m._1)
+      when m = p.match([:var_ref, [:@ident, _1, [_2, _3]]])
+        [[m._1, m._2, m._3]]
       when m = p.match([:method_add_block, _any, [p.or(:brace_block, :do_block), [:block_var, _1, _any], _2]])
-        handle_block_var(m._1)
-        # TODO: handle block body(_2)
+        # block args
+        handle_block_var(m._1) +
+          # block body
+          m._2.flat_map {|subtree| extract_from_sexp(subtree) }
       else
         pp sexp
         []
