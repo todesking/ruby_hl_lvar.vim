@@ -2,12 +2,49 @@
 
 let s:self_path=expand("<sfile>")
 
-echo s:self_path
-
 execute 'rubyfile '.s:self_path
+
+" return: [[var_name, row, col_start, col_end]...]
+function! ruby_hl_lvar#extract_lvars(buffer) abort
+  let bufnr = bufnr(a:buffer)
+  if exists('s:ret')
+    unlet s:ret
+  endif
+  execute 'ruby RubyHlLvar::Vim.extract_lvars_from '.bufnr
+  let ret = s:ret
+  unlet s:ret
+  return ret
+endfunction
 
 " Ruby {{{
 finish
+
+module RubyHlLvar
+  module Vim
+    def self.extract_lvars_from(bufnr)
+      with_error_handling do
+        source = ::Vim.evaluate("getbufline(#{bufnr}, 1, '$')").join("\n")
+        return_to_vim 's:ret', RubyHlLvar::Extractor.new.extract(source)
+      end
+    end
+
+    def self.return_to_vim(var_name, content)
+      ::Vim.command "let #{var_name} = #{content.inspect}"
+    end
+
+    def self.with_error_handling
+      begin
+        yield
+      rescue => e
+        ::Vim.message e
+        e.backtrace.each do|l|
+          ::Vim.message l
+        end
+        raise e
+      end
+    end
+  end
+end
 
 require 'ripper'
 
@@ -49,7 +86,7 @@ module RubyHlLvar
           # block body
           m._2.flat_map {|subtree| extract_from_sexp(subtree) }
       else
-        pp sexp
+        puts "WARN: Unsupported ast item: #{sexp.inspect}"
         []
       end
     end
