@@ -28,13 +28,18 @@ describe RubyHlLvar::Extractor do
         it { '(a, (b, c)), d = foo'.should_extract_to [["a", 1, 1], ["b", 1, 5], ["c", 1, 8], ["d", 1, 13]] }
       end
 
-      context "with simple block parameter like {|a, b| }" do
+      context "with simple block({ ... }) parameter like {|a, b| }" do
         it { "foo {|a, b| }".should_extract_to [["a", 1, 6], ["b", 1, 9]] }
       end
-      context "with simple block without args" do
+      context "with simple block({ ... }) without args" do
         it { "foo { }".should_extract_to [] }
       end
-      context "with simple block parameter like do|a, b| end"
+      context "with simple block(do ... end) without args" do
+        it { "foo { }".should_extract_to [] }
+      end
+      context "with simple block(do ... end) parameter" do
+        it { "foo do|a|; end".should_extract_to [["a", 1, 7]] }
+      end
 
       context "bare lvar reference"
       context "lvar reference in method call lhs"

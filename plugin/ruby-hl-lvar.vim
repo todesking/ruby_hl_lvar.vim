@@ -26,7 +26,7 @@ module RubyHlLvar
         [[name, line, col]]
       when m = p.match([:massign, _1, _2])
         handle_massign_lhs(m._1)
-      when m = p.match([:method_add_block, _any, [:brace_block, [:block_var, _1, _any], _2]])
+      when m = p.match([:method_add_block, _any, [p.or(:brace_block, :do_block), [:block_var, _1, _any], _2]])
         handle_block_var(m._1)
         # TODO: handle block body(_2)
       else
@@ -121,16 +121,12 @@ module RubyHlLvar
       end
 
       class Or < self
-        def initialize(*pats)
+        def initialize(pats)
           @pats = pats
         end
         def execute(mmatch, obj)
-          @pats.each do|pat|
-            case pat
-            when SpecialPat
-            else
-              pat == obj
-            end
+          @pats.any? do|pat|
+            pat.execute(mmatch, obj)
           end
         end
       end
@@ -166,6 +162,10 @@ module RubyHlLvar
 
     def self.match(plain_pat)
       MutableMatch.new(SpecialPat.build_from(plain_pat))
+    end
+
+    def self.or(*pats)
+      SpecialPat::Or.new(pats.map{|p| SpecialPat.build_from(p) })
     end
 
     class <<self
