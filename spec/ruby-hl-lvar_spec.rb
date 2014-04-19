@@ -28,7 +28,20 @@ describe RubyHlLvar::Extractor do
         it { '(a, (b, c)), d = foo'.should_extract_to [["a", 1, 1], ["b", 1, 5], ["c", 1, 8], ["d", 1, 13]] }
       end
 
-      it "with simple block parameter like {|a, b| }"
+      context "with simple block parameter like {|a, b| }" do
+        it { "foo {|a, b| }".should_extract_to [["a", 1, 6], ["b", 1, 9]] }
+      end
+      context "with simple block parameter like do|a, b| end"
+
+      context "bare lvar reference"
+      context "lvar reference in method call lhs"
+      context "lvar reference in method call argument"
+      context "lvar reference in block"
+      context "lvar reference in method body"
+      context "lvar reference in method class body"
+      context "lvar reference in method module body"
+      context "method reference in expr should ignored"
+
       it "with complex block parameter like {|a, (b, c)| }"
       it "with multi assignment like a = b = c"
       it "with assignment in rhs"

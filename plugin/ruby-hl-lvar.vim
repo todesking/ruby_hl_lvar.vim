@@ -26,14 +26,17 @@ module RubyHlLvar
         [[name, line, col]]
       when m = p.match([:massign, _1, _2])
         handle_massign_lhs(m._1)
+      when m = p.match([:method_add_block, _any, [:brace_block, [:block_var, _1, _any], _2]])
+        handle_block_var(m._1)
+        # TODO: handle block body(_2)
       else
+        pp sexp
         []
       end
     end
 
     private
       def handle_massign_lhs(lhs)
-        pp lhs
         p = SexpMatcher
         lhs.flat_map {|expr|
           case expr
@@ -45,6 +48,21 @@ module RubyHlLvar
             []
           end
         }
+      end
+      def handle_block_var(params)
+        p = SexpMatcher
+        if params && params[0] == :params
+          params[1].map {|param|
+            case param
+            when m = p.match([:@ident, p._1, [p._2, p._3]])
+              [m._1, m._2, m._3]
+            else
+              []
+            end
+          }
+        else
+          []
+        end
       end
   end
 
