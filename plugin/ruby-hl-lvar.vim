@@ -12,6 +12,7 @@ module RubyHlLvar
     end
 
     def extract_from_sexp(sexp)
+      raise "BUG" if sexp.is_a?(SexpMatcher::SpecialPat)
       p = SexpMatcher
       _any = p::ANY
 
@@ -21,14 +22,20 @@ module RubyHlLvar
 
       case sexp
       when m = p.match([:program, _1])
+        # root
         m[1].flat_map {|subtree| extract_from_sexp(subtree) }
       when m = p.match([:assign, [:var_field, [:@ident, _1, _2]], _any])
+        # single assignment
         name, (line, col) = m._1, m._2
         [[name, line, col]]
       when m = p.match([:massign, _1, _2])
+        # mass assignment
         handle_massign_lhs(m._1)
       when m = p.match([:var_ref, [:@ident, _1, [_2, _3]]])
+        # local variable reference
         [[m._1, m._2, m._3]]
+      when m = p.match([:binary, _1, _any, _2])
+        extract_from_sexp(m._1) + extract_from_sexp(m._2)
       when m = p.match([:method_add_block, _any, [p.or(:brace_block, :do_block), [:block_var, _1, _any], _2]])
         # block args
         handle_block_var(m._1) +

@@ -47,6 +47,9 @@ describe RubyHlLvar::Extractor do
       it { "x = 1; y; x".should_extract_to [["x", 1, 0], ["x", 1, 10]] }
     end
 
+    context "lvar reference in binop" do
+      it { "x = 1; x + y".should_extract_to [["x", 1, 0], ["x", 1, 7]] }
+    end
     context "lvar reference in method call lhs"
     context "lvar reference in method call argument"
     context "lvar reference in block"
