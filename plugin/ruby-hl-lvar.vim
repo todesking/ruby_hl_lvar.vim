@@ -15,6 +15,11 @@ module RubyHlLvar
       case sexp[0]
       when :program
         sexp[1].flat_map {|part| extract_from_sexp(part)}
+      when :assign
+        _, lhs, rhs = sexp
+        # [:var_field, [:@ident, name, [l, c]]]
+        _, (_, name, (line, col)) = lhs
+        [[name, line, col]]
       else
         [] # Just ignore subtree
       end

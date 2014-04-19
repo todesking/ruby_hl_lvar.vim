@@ -8,18 +8,32 @@ describe RubyHlLvar::Extractor do
       etor.extract('').should be_empty
     end
 
-    it "with simple assignment"
-    it "with simple mass assignment like a, b, c = foo"
-    it "with complex mass assignment like (a, (b, c)), d = foo"
-    it "with simple block parameter like {|a, b| }"
-    it "with complex block parameter like {|a, (b, c)| }"
-    it "with simple method parameter"
-    it "with method parameter like arg = 1"
-    it "with method parameter like *args"
-    it "with method parameter like arg: 1"
-    it "with complex method parameter"
-    it "with assignment in method definition"
-    it "with assignment in nested control structure"
-    it "with method definition in nested control structure"
+    context "with top level" do
+      context "with simple assignment" do
+        it { etor.extract('a = 1').should == [["a", 1, 0]] }
+      end
+      it "with simple mass assignment like a, b, c = foo"
+      it "with complex mass assignment like (a, (b, c)), d = foo"
+      it "with simple block parameter like {|a, b| }"
+      it "with complex block parameter like {|a, (b, c)| }"
+    end
+
+    context "with rhs of assignment"
+
+    context "with method definition" do
+      it "with simple method parameter"
+      it "with method parameter like arg = 1"
+      it "with method parameter like *args"
+      it "with method parameter like arg: 1"
+      it "with complex method parameter"
+      it "with assignment in method definition"
+    end
+
+    context "with complex control structure" do
+      it "with assignment"
+      it "with method definition"
+    end
+
+    context "with string interporlation"
   end
 end
