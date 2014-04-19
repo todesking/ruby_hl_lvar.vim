@@ -1,4 +1,12 @@
-""; <<-finish
+" this line is magic. "; <<-finish
+
+let s:self_path=expand("<sfile>")
+
+echo s:self_path
+
+execute 'rubyfile '.s:self_path
+
+" Ruby {{{
 finish
 
 require 'ripper'
@@ -12,7 +20,6 @@ module RubyHlLvar
     end
 
     def extract_from_sexp(sexp)
-      raise "BUG" if sexp.is_a?(SexpMatcher::SpecialPat)
       p = SexpMatcher
       _any = p::ANY
 
@@ -191,3 +198,4 @@ module RubyHlLvar
   end
 end
 
+" }}} "
