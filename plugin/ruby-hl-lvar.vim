@@ -68,25 +68,70 @@ module RubyHlLvar
 
   class SexpMatcher
     class SpecialPat
-      def initialize(name)
-        @name = name
-      end
       def execute(match, obj); true; end
 
+      def self.build_from(plain)
+        case plain
+        when SpecialPat
+          plain
+        when Array
+          Arr.new(plain.map{|p| build_from(p) })
+        else
+          Obj.new(plain)
+        end
+      end
+
+      class Arr < self
+        def initialize(pats)
+          @pats = pats
+        end
+
+        def execute(mmatch, obj)
+          return false unless obj.is_a?(Array)
+          return false unless obj.size == @pats.size
+          @pats.zip(obj).all? do|pat, o|
+            pat.execute(mmatch, o)
+          end
+        end
+      end
+
+      class Obj < self
+        def initialize(obj)
+          @obj = obj
+        end
+
+        def execute(mmatch, obj)
+          @obj == obj
+        end
+      end
+
       class Any < self
-        def initialize(); super('*'); end
         def execute(match, obj); true; end
       end
 
       class Group < self
         def initialize(index)
-          super("_#{index}")
           @index = index
         end
         attr_reader :index
         def execute(mmatch, obj)
           mmatch[@index] = obj
           true
+        end
+      end
+
+      class Or < self
+        def initialize(*pats)
+          @pats = pats
+        end
+        def execute(mmatch, obj)
+          @pats.each do|pat|
+            case pat
+            when SpecialPat
+            else
+              pat == obj
+            end
+          end
         end
       end
     end
@@ -101,7 +146,7 @@ module RubyHlLvar
       end
 
       def ===(obj)
-        _match(@pat, obj)
+        @pat.execute(self, obj)
       end
 
       def [](i)
@@ -117,26 +162,10 @@ module RubyHlLvar
           self[g.index]
         end
       end
-
-      private
-        def _match(pat, obj)
-          case pat
-          when SpecialPat
-            pat.execute(self, obj)
-          when Array
-            Array === obj &&
-              pat.size == obj.size &&
-              pat.zip(obj).all? {|p,o| _match(p, o) }
-          when Hash
-            raise "Not implemented now :("
-          else
-            pat == obj
-          end
-        end
     end
 
-    def self.match(pat)
-      MutableMatch.new(pat)
+    def self.match(plain_pat)
+      MutableMatch.new(SpecialPat.build_from(plain_pat))
     end
 
     class <<self
