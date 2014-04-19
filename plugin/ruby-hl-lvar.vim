@@ -15,16 +15,36 @@ module RubyHlLvar
       p = SexpMatcher
       _any = p::ANY
 
+      _1 = p._1
+      _2 = p._2
+
       case sexp
-      when m = p.match([:program, p._1])
+      when m = p.match([:program, _1])
         m[1].flat_map {|subtree| extract_from_sexp(subtree) }
-      when m = p.match([:assign, [:var_field, [:@ident, p._1, p._2]], _any])
+      when m = p.match([:assign, [:var_field, [:@ident, _1, _2]], _any])
         name, (line, col) = m._1, m._2
         [[name, line, col]]
+      when m = p.match([:massign, _1, _2])
+        handle_massign(m._1)
       else
         []
       end
     end
+
+    private
+      def handle_massign(lhs)
+        p = SexpMatcher
+        lhs.flat_map {|expr|
+          case expr
+          when m = p.match([:@ident, p._1, p._2])
+            l, c = m._2
+            [[m._1, l, c]]
+          when m = p.match([:mlhs_paren, p._1])
+          else
+            []
+          end
+        }
+      end
   end
 
   class SexpMatcher

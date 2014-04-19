@@ -12,13 +12,18 @@ describe RubyHlLvar::Extractor do
       context "with simple assignment" do
         it { etor.extract('a = 1').should == [["a", 1, 0]] }
       end
-      it "with simple mass assignment like a, b, c = foo"
+      context "with simple mass assignment like a, b, c = foo" do
+        it {
+          etor.extract('a, b, c = foo').should == [["a", 1, 0], ["b", 1, 3], ["c", 1, 6] ]
+        }
+      end
       it "with complex mass assignment like (a, (b, c)), d = foo"
       it "with simple block parameter like {|a, b| }"
       it "with complex block parameter like {|a, (b, c)| }"
+      it "with multi assignment like a = b = c"
+      it "with assignment in rhs"
+      it "with assignment in method call"
     end
-
-    context "with rhs of assignment"
 
     context "with method definition" do
       it "with simple method parameter"
