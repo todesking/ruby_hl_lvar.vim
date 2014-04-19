@@ -25,21 +25,22 @@ module RubyHlLvar
         name, (line, col) = m._1, m._2
         [[name, line, col]]
       when m = p.match([:massign, _1, _2])
-        handle_massign(m._1)
+        handle_massign_lhs(m._1)
       else
         []
       end
     end
 
     private
-      def handle_massign(lhs)
+      def handle_massign_lhs(lhs)
+        pp lhs
         p = SexpMatcher
         lhs.flat_map {|expr|
           case expr
-          when m = p.match([:@ident, p._1, p._2])
-            l, c = m._2
-            [[m._1, l, c]]
+          when m = p.match([:@ident, p._1, [p._2, p._3]])
+            [[m._1, m._2, m._3]]
           when m = p.match([:mlhs_paren, p._1])
+            handle_massign_lhs(m._1)
           else
             []
           end

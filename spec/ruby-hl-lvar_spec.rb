@@ -1,5 +1,11 @@
 load File.join(File.dirname(__FILE__), "..", "plugin", "ruby-hl-lvar.vim")
 
+class String
+  def should_extract_to(expected)
+    RubyHlLvar::Extractor.new.extract(self).should == expected
+  end
+end
+
 describe RubyHlLvar::Extractor do
   let(:etor){ RubyHlLvar::Extractor.new }
 
@@ -10,14 +16,18 @@ describe RubyHlLvar::Extractor do
 
     context "with top level" do
       context "with simple assignment" do
-        it { etor.extract('a = 1').should == [["a", 1, 0]] }
+        it { 'a = 1'.should_extract_to [["a", 1, 0]] }
       end
-      context "with simple mass assignment like a, b, c = foo" do
+      context "with simple mass assignment" do
         it {
-          etor.extract('a, b, c = foo').should == [["a", 1, 0], ["b", 1, 3], ["c", 1, 6] ]
+          'a, b, c = foo'.should_extract_to [["a", 1, 0], ["b", 1, 3], ["c", 1, 6] ]
         }
       end
-      it "with complex mass assignment like (a, (b, c)), d = foo"
+
+      context "with complex mass assignment" do
+        it { '(a, (b, c)), d = foo'.should_extract_to [["a", 1, 1], ["b", 1, 5], ["c", 1, 8], ["d", 1, 13]] }
+      end
+
       it "with simple block parameter like {|a, b| }"
       it "with complex block parameter like {|a, (b, c)| }"
       it "with multi assignment like a = b = c"
