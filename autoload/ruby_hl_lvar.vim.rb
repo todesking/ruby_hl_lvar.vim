@@ -33,7 +33,7 @@ module RubyHlLvar
   class Extractor
     def initialize
       # rule_name => Patm::Rule
-      @rules = {}
+      @rules = Patm::RuleCache.new
     end
     # source:String -> [ [lvar_name:String, line:Numeric, col:Numeric]... ]
     def extract(source)
@@ -89,7 +89,7 @@ module RubyHlLvar
     end
 
     def extract_from_sexp(obj)
-      match(:root, obj) do|r|
+      @rules.match(:root, obj) do|r|
         p = Patm
         __ = p::ANY
         _xs = p::ARRAY_REST
@@ -137,16 +137,13 @@ module RubyHlLvar
     end
 
     private
-      def match(rule_name, obj, &rule)
-        (@rules[rule_name] ||= ::Patm::Rule.new(&rule)).apply(obj)
-      end
       def handle_massign_lhs(lhs)
         return [] unless lhs
         if lhs.size > 0 && lhs[0].is_a?(Symbol)
           lhs = [lhs]
         end
         lhs.flat_map {|expr|
-          match(:massign_lhs_item, expr) do|r|
+          @rules.match(:massign_lhs_item, expr) do|r|
             p = Patm
             r.on [:@ident, p._1, [p._2, p._3]] do|m|
               [[m._1, m._2, m._3]]
@@ -176,7 +173,7 @@ module RubyHlLvar
       end
 
       def handle_rest_param(rest)
-        match(:rest_param, rest) do|r|
+        @rules.match(:rest_param, rest) do|r|
           p = Patm
           r.on [:rest_param, [:@ident, p._1, [p._2, p._3]]] do|m|
             [[m._1, m._2, m._3]]
@@ -192,7 +189,7 @@ module RubyHlLvar
       end
 
       def handle_block_param(block)
-        match(:block_param, block) do|r|
+        @rules.match(:block_param, block) do|r|
           p = ::Patm
           r.on [:blockarg, [:@ident, p._1, [p._2, p._3]]] do|m|
             [[m._1, m._2, m._3]]
@@ -212,7 +209,7 @@ module RubyHlLvar
         p = Patm
         _any = p::ANY
         list.flat_map {|expr|
-          match(:default_param, expr) do|r|
+          @rules.match(:default_param, expr) do|r|
             r.on [[:@ident, p._1, [p._2, p._3]], _any] do|m|
               [[m._1, m._2, m._3]]
             end

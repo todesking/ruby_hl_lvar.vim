@@ -139,6 +139,15 @@ module Patm
     end
   end
 
+  class RuleCache
+    def initialize
+      @rules = {}
+    end
+    def match(rule_name, obj, &rule)
+      (@rules[rule_name] ||= ::Patm::Rule.new(&rule)).apply(obj)
+    end
+  end
+
   class Match
     def initialize
       @group = {}
