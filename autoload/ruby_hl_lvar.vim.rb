@@ -160,6 +160,9 @@ module RubyHlLvar
             r.on [:field, p::ARRAY_REST] do
               []
             end
+            r.on [:@ivar, p::ARRAY_REST] do
+              []
+            end
             r.else do|obj|
               puts "WARN: Unsupported ast item in handle_massign_lhs: #{obj.inspect}"
               []

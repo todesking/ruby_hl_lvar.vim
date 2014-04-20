@@ -118,6 +118,8 @@ describe RubyHlLvar::Extractor do
     context "field mass assignment" do
       it { "x.y, z = 1, 2".should_extract_to [["z", 1, 5]] }
     end
-    context "ivar mass assignment in mass assignment"
+    context "ivar mass assignment" do
+      it { "@a, @b = 1, 2".should_extract_to [] }
+    end
   end
 end
