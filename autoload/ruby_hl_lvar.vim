@@ -119,8 +119,12 @@ module RubyHlLvar
         }
       when m = p.match([:module, _any, [:bodystmt, _1, _any, _any, _any]])
         m._1.flat_map {|subtree| extract_from_sexp(subtree) }
-      when m = p.match([:def, _1, _any, [:bodystmt, _2, _any, _any, _any]])
+      when m = p.match([:def, _any, _any, [:bodystmt, _2, _any, _any, _any]])
+        # TODO: extract from params
+        m._2.flat_map{|st| extract_from_sexp(st) }
+      when m = p.match_array([:defs], _1, [_any, [:bodystmt, _2, _any, _any, _any]])
         # TODO: extract from lvar reference
+        # TODO: extract from params
         m._2.flat_map{|st| extract_from_sexp(st) }
       else
         puts "WARN: Unsupported ast item: #{sexp.inspect}"
@@ -187,17 +191,23 @@ module RubyHlLvar
       end
 
       class Arr < self
-        def initialize(pats, rest = nil)
-          @pats = pats
+        def initialize(head, rest = nil, tail = [])
+          @head =head
           @rest = rest
+          @tail = tail
         end
 
         def execute(mmatch, obj)
+          size_min = @head.size + @tail.size
           return false unless obj.is_a?(Array)
-          return false unless @rest ? (obj.size >= @pats.size) :  (obj.size == @pats.size)
-          @pats.zip(obj).all? {|pat, o|
+          return false unless @rest ? (obj.size >= size_min) :  (obj.size == size_min)
+          @head.zip(obj[0..(@head.size - 1)]).all? {|pat, o|
             pat.execute(mmatch, o)
-          } && (!@rest || @rest.execute(mmatch, obj[@pats.size..-1]))
+          } &&
+          @tail.zip(obj[(-@tail.size)..-1]).all? {|pat, o|
+            pat.execute(mmatch, o)
+          } &&
+          (!@rest || @rest.execute(mmatch, obj[@head.size..-(@tail.size+1)]))
         end
       end
 
@@ -295,6 +305,16 @@ module RubyHlLvar
 
     def self.match(plain_pat)
       MutableMatch.new(SpecialPat.build_from(plain_pat))
+    end
+
+    def self.match_array(head, rest_spat = nil, tail = [])
+      MutableMatch.new(
+        SpecialPat::Arr.new(
+          head.map{|e| SpecialPat.build_from(e)},
+          rest_spat,
+          tail.map{|e| SpecialPat.build_from(e)}
+        )
+      )
     end
 
     def self.or(*pats)
