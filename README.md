@@ -2,6 +2,8 @@
 
 Highlight local variables in Ruby files.
 
+![demo](./doc/demo.gif)
+
 ## Requirements
 
 - Vim Ruby interface(`has('ruby')`) enabled and Ruby's version = 2.0.0 (You can check by `:ruby puts RUBY_VERSION`)
