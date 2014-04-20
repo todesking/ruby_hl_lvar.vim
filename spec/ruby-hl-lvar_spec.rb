@@ -113,5 +113,10 @@ describe RubyHlLvar::Extractor do
       it { "x=10;\nfoo(x)".should_extract_to [["x", 1, 0], ["x", 2, 4]] }
       it { "x=10;\na.b(x)".should_extract_to [["x", 1, 0], ["x", 2, 4]] }
     end
+
+    context "block argument"
+    context "field assignment"
+    context "field assignment in mass assignment"
+    context "ivar assignment in mass assignment"
   end
 end
