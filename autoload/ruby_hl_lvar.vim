@@ -26,15 +26,19 @@ function! ruby_hl_lvar#disable(buffer, force) abort
 	endif
 	let bufnr = bufnr(a:buffer)
 	if has_key(s:match_ids, bufnr) && s:match_ids[bufnr] > 0
-		try
-			call matchdelete(s:match_ids[bufnr])
-		catch /^E803:/
-		endtry
+		call s:try_matchdelete(s:match_ids[bufnr])
 		unlet s:match_ids[bufnr]
 	endif
 	if a:force
 		let b:ruby_hl_lvar_enabled = 0
 	endif
+endfunction
+
+function! s:try_matchdelete(id)
+	try
+		call matchdelete(a:id)
+	catch /E803:/
+	endtry
 endfunction
 
 function! ruby_hl_lvar#enable(buffer, force) abort
