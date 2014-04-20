@@ -88,6 +88,8 @@ module RubyHlLvar
             [[m._1, m._2, m._3]]
           when m = p.match([:mlhs_paren, p._1])
             handle_massign_lhs(m._1)
+          when m = p.match([:mlhs_add_star, p._1, p._2])
+            handle_massign_lhs(m._1) + handle_massign_lhs([m._2])
           else
             puts "WARN: Unsupported ast item in handle_massign_lhs: #{expr.inspect}"
             []
