@@ -54,10 +54,9 @@ module RubyHlLvar
       when m = p.match([:program, _1])
         # root
         m._1.flat_map {|subtree| extract_from_sexp(subtree) }
-      when m = p.match([:assign, [:var_field, [:@ident, _1, _2]], _any])
+      when m = p.match([:assign, [:var_field, [:@ident, _1, [_2, _3]]], _any])
         # single assignment
-        name, (line, col) = m._1, m._2
-        [[name, line, col]]
+        [[m._1, m._2, m._3]]
       when m = p.match([:massign, _1, _2])
         # mass assignment
         handle_massign_lhs(m._1)
