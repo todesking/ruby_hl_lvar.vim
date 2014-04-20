@@ -8,7 +8,9 @@ function! ruby_hl_lvar#extract_lvars(buffer) abort
   if exists('s:ret')
     unlet s:ret
   endif
+  let t = reltime()
   execute 'ruby RubyHlLvar::Vim.extract_lvars_from '.bufnr
+  let b:ruby_hl_lvar_time = str2float(reltimestr(reltime(t)))
   let ret = s:ret
   unlet s:ret
   return ret
