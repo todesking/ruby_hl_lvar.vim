@@ -36,3 +36,7 @@ nmap <leader>he <Plug>(ruby_hl_lvar-enable)
 nmap <leader>hd <Plug>(ruby_hl_lvar-disable)
 nmap <leader>hr <Plug>(ruby_hl_lvar-refresh)
 ```
+
+## Known bugs
+
+- Sometimes highlight contaminate other buffers
