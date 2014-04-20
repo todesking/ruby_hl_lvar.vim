@@ -2,12 +2,6 @@ let s:self_path=expand("<sfile>")
 
 execute 'rubyfile '.s:self_path.'.rb'
 
-" bufnr => match_id
-let s:match_ids = {}
-
-" bufnr => match_pattern
-let s:match_patterns = {}
-
 " return: [[var_name, row, col_start, col_end]...]
 function! ruby_hl_lvar#extract_lvars(buffer) abort
   let bufnr = bufnr(a:buffer)
@@ -25,9 +19,9 @@ function! ruby_hl_lvar#disable(buffer, force) abort
 		return
 	endif
 	let bufnr = bufnr(a:buffer)
-	if has_key(s:match_ids, bufnr) && s:match_ids[bufnr] > 0
-		call s:try_matchdelete(s:match_ids[bufnr])
-		unlet s:match_ids[bufnr]
+	if exists('b:ruby_hl_lvar_match_id') && b:ruby_hl_lvar_match_id > 0
+		call s:try_matchdelete(b:ruby_hl_lvar_match_id)
+		unlet b:ruby_hl_lvar_match_id
 	endif
 	if a:force
 		let b:ruby_hl_lvar_enabled = 0
@@ -47,10 +41,10 @@ function! ruby_hl_lvar#enable(buffer, force) abort
 	endif
 	let bufnr = bufnr(a:buffer)
 	call ruby_hl_lvar#disable(a:buffer, a:force)
-	if !has_key(s:match_patterns, bufnr)
+	if !exists('b:ruby_hl_lvar_match_pattern')
 		call ruby_hl_lvar#update_match_pattern(a:buffer)
 	endif
-	let s:match_ids[bufnr] = matchadd(g:ruby_hl_lvar_hl_group, s:match_patterns[bufnr])
+	let b:ruby_hl_lvar_match_id = matchadd(g:ruby_hl_lvar_hl_group, b:ruby_hl_lvar_match_pattern)
 	if a:force
 		let b:ruby_hl_lvar_enabled = 1
 	endif
@@ -61,8 +55,8 @@ function! ruby_hl_lvar#refresh(buffer, force) abort
 		return
 	endif
 	let bufnr = bufnr(a:buffer)
-	if has_key(s:match_patterns, bufnr)
-		unlet s:match_patterns[bufnr]
+	if exists('b:ruby_hl_lvar_match_pattern')
+		unlet b:ruby_hl_lvar_match_pattern
 	endif
 	call ruby_hl_lvar#enable(a:buffer, a:force)
 endfunction
@@ -72,6 +66,6 @@ function! ruby_hl_lvar#update_match_pattern(buffer) abort
 	let matches = map(ruby_hl_lvar#extract_lvars(a:buffer), '
 		\ ''\%''.v:val[1].''l''.''\%''.v:val[2].''c''.repeat(''.'', strchars(v:val[0]))
 		\ ')
-	let s:match_patterns[bufnr] = join(matches, '\|')
+	let b:ruby_hl_lvar_match_pattern = join(matches, '\|')
 endfunction
 
