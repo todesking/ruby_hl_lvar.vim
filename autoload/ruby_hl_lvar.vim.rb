@@ -47,13 +47,6 @@ module RubyHlLvar
       _3 = p._3
 
       case sexp
-      when m = p.match([:void_stmt])
-        []
-      when m = p.match([:vcall, _any])
-        []
-      when m = p.match([:program, _1])
-        # root
-        m._1.flat_map {|subtree| extract_from_sexp(subtree) }
       when m = p.match([:assign, [:var_field, [:@ident, _1, [_2, _3]]], _any])
         # single assignment
         [[m._1, m._2, m._3]]
@@ -63,52 +56,27 @@ module RubyHlLvar
       when m = p.match([:var_ref, [:@ident, _1, [_2, _3]]])
         # local variable reference
         [[m._1, m._2, m._3]]
-      when m = p.match([:binary, _1, _any, _2])
-        extract_from_sexp(m._1) + extract_from_sexp(m._2)
-      when m = p.match([:method_add_block, _any, [p.or(:brace_block, :do_block), p.or(nil, [:block_var, _1, _any]), _2]])
-        # block args
-        (m._1 ? handle_block_var(m._1) : []) +
-          # block body
-          m._2.flat_map {|subtree| extract_from_sexp(subtree) }
-      when m = p.match([:string_literal, [:string_content, _xs&_1]])
-        m._1.flat_map {|content|
-          case content
-          when m_ = p.match([:string_embexpr, _1])
-            m_._1.flat_map {|expr| extract_from_sexp(expr) }
-          when m_ = p.match([:@tstring_content, _any, _any])
-            []
-          else
-            puts "WARN: Unsupported ast item: #{content.inspect}"
-            []
-          end
-        }
-      when m = p.match([:array, _1])
-        m._1.flat_map{|expr| extract_from_sexp(expr) }
-      when m = p.match([:module, _any, [:bodystmt, _1, _any, _any, _any]])
-        m._1.flat_map {|subtree| extract_from_sexp(subtree) }
-      when m = p.match([:class, _any, _any, [:bodystmt, _1, _any, _any, _any]])
-        m._1.flat_map {|subtree| extract_from_sexp(subtree) }
-      when m = p.match([:def, _any, _any, [:bodystmt, _2, _any, _any, _any]])
-        # TODO: extract from params
-        m._2.flat_map{|st| extract_from_sexp(st) }
-      when m = p.match([:method_add_arg, _1, [:arg_paren, [:args_add_block, _2, _any]]])
-        # TODO: extract from _1
-        m._2.flat_map{|expr| extract_from_sexp(expr) }
-      when m = p.match([:command, _1, [:args_add_block, _2, _any]])
-        # TODO: extract from _1
-        m._2.flat_map{|expr| extract_from_sexp(expr) }
-      when m = p.match_array([:defs], _1, [_any, [:bodystmt, _2, _any, _any, _any]])
-        # TODO: extract from lvar reference
-        # TODO: extract from params
-        m._2.flat_map{|st| extract_from_sexp(st) }
-      else
-        puts "WARN: Unsupported ast item: #{sexp.inspect}"
+      when m = p.match([:params, _1, _2, _3, _xs])
+        handle_normal_params(m._1) + handle_default_params(m._2) + handle_rest_param(m._3)
+      when nil, true, false, Numeric, String, Symbol, []
         []
+      else
+        if sexp.is_a?(Array) && sexp.size > 0
+          if sexp[0].is_a?(Symbol) # some struct
+            sexp[1..-1].flat_map {|elm| extract_from_sexp(elm) }
+          else
+            sexp.flat_map{|elm| extract_from_sexp(elm) }
+          end
+        else
+          puts "WARN: Unsupported AST data: #{sexp.inspect}"
+          []
+        end
       end
     end
 
     private
       def handle_massign_lhs(lhs)
+        return [] unless lhs
         p = SexpMatcher
         if lhs.size > 0 && lhs[0].is_a?(Symbol)
           lhs = [lhs]
@@ -125,14 +93,36 @@ module RubyHlLvar
           end
         }
       end
-      def handle_block_var(params)
-        if params && params[0] == :params
-          puts params.inspect
-          handle_massign_lhs params[1]
+
+      def handle_normal_params(list)
+        handle_massign_lhs(list)
+      end
+
+      def handle_rest_param(rest)
+        p = SexpMatcher
+        case rest
+        when m = p.match([:rest_param, [:@ident, p._1, [p._2, p._3]]])
+          [[m._1, m._2, m._3]]
+        when nil
+          []
         else
-          puts "WARN: Unsupported ast item in handle_block_var: #{params.inspect}"
+          puts "WARN: Unsupported ast item in handle_rest_params: #{rest.inspect}"
           []
         end
+      end
+
+      def handle_default_params(list)
+        return [] unless list
+        p = SexpMatcher
+        _any = p::ANY
+        list.flat_map {|expr|
+          case expr
+          when m = p.match([[:@ident, p._1, [p._2, p._3]], _any])
+            [[m._1, m._2, m._3]]
+          else
+            []
+          end
+        }
       end
   end
 

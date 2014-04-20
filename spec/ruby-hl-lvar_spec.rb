@@ -93,25 +93,10 @@ describe RubyHlLvar::Extractor do
       it { "x=0\n\"x\#{x}x\"".should_extract_to [["x", 1, 0], ["x", 2, 4]] }
     end
 
-    it "with complex block parameter like {|a, (b, c)| }"
-    it "with multi assignment like a = b = c"
-    it "with assignment in rhs"
-    it "with assignment in method call"
-
-    context "with method definition" do
-      it "with simple method parameter"
-      it "with method parameter like arg = 1"
-      it "with method parameter like *args"
-      it "with method parameter like arg: 1"
-      it "with complex method parameter"
-      it "with assignment in method definition"
+    context "method params" do
+      it { "def f(x)\nx\nend".should_extract_to [["x", 1, 6], ["x", 2, 0]] }
+      it { "def f(*x)\nx\nend".should_extract_to [["x", 1, 7], ["x", 2, 0]] }
+      it { "def f(x=0)\nx\nend".should_extract_to [["x", 1, 6], ["x", 2, 0]] }
     end
-
-    context "with complex control structure" do
-      it "with assignment"
-      it "with method definition"
-    end
-
-    context "with string interporlation"
   end
 end
