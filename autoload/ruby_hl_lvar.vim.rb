@@ -37,64 +37,86 @@ module RubyHlLvar
       extract_from_sexp(sexp)
     end
 
-    def extract_from_sexp(sexp)
-      p = Patm
-      _any = p::ANY
-      _xs = p::ARRAY_REST
+    def root_matcher
+      @root_matcher ||= begin
+        p = Patm
+        _any = p::ANY
+        _xs = p::ARRAY_REST
 
-      _1 = p._1
-      _2 = p._2
-      _3 = p._3
-      _4 = p._4
+        _1 = p._1
+        _2 = p._2
+        _3 = p._3
+        _4 = p._4
 
-      case sexp
-      when m = p.match([:assign, [:var_field, [:@ident, _1, [_2, _3]]], _4])
-        # single assignment
-        [[m._1, m._2, m._3]] + extract_from_sexp(m._4)
-      when m = p.match([:massign, _1, _2])
-        # mass assignment
-        handle_massign_lhs(m._1) + extract_from_sexp(m._2)
-      when m = p.match([:var_ref, [:@ident, _1, [_2, _3]]])
-        # local variable reference
-        [[m._1, m._2, m._3]]
-      when m = p.match([:params, _1, _2, _3, _xs])
-        handle_normal_params(m._1) + handle_default_params(m._2) + handle_rest_param(m._3)
-      when nil, true, false, Numeric, String, Symbol, []
-        []
-      else
-        if sexp.is_a?(Array) && sexp.size > 0
-          if sexp[0].is_a?(Symbol) # some struct
-            sexp[1..-1].flat_map {|elm| extract_from_sexp(elm) }
-          else
-            sexp.flat_map{|elm| extract_from_sexp(elm) }
+        ::Patm::Rule.new do|r|
+          # single assignment
+          r.on [:assign, [:var_field, [:@ident, _1, [_2, _3]]], _4] do|m|
+            [[m._1, m._2, m._3]] + extract_from_sexp(m._4)
           end
-        else
-          puts "WARN: Unsupported AST data: #{sexp.inspect}"
-          []
+          # mass assignment
+          r.on [:massign, _1, _2] do|m|
+            handle_massign_lhs(m._1) + extract_from_sexp(m._2)
+          end
+          # local variable reference
+          r.on [:var_ref, [:@ident, _1, [_2, _3]]] do|m|
+            [[m._1, m._2, m._3]]
+          end
+          # method params
+          r.on [:params, _1, _2, _3, _xs] do|m|
+            handle_normal_params(m._1) + handle_default_params(m._2) + handle_rest_param(m._3)
+          end
+          r.on p.or(nil, true, false, Numeric, String, Symbol, []) do|m|
+            []
+          end
+          r.else do|sexp|
+            if sexp.is_a?(Array) && sexp.size > 0
+              if sexp[0].is_a?(Symbol) # some struct
+                sexp[1..-1].flat_map {|elm| extract_from_sexp(elm) }
+              else
+                sexp.flat_map{|elm| extract_from_sexp(elm) }
+              end
+            else
+              puts "WARN: Unsupported AST data: #{sexp.inspect}"
+              []
+            end
+          end
         end
       end
+    end
+
+    def massign_lhs_matcher
+      @massign_lhs_matcher ||= begin
+        p = Patm
+        ::Patm::Rule.new do|r|
+          r.on [:@ident, p._1, [p._2, p._3]] do|m|
+            [[m._1, m._2, m._3]]
+          end
+          r.on [:mlhs_paren, p._1] do|m|
+            handle_massign_lhs(m._1)
+          end
+          r.on [:mlhs_add_star, p._1, p._2] do|m|
+            handle_massign_lhs(m._1) + handle_massign_lhs([m._2])
+          end
+          r.else do|expr|
+            puts "WARN: Unsupported ast item in handle_massign_lhs: #{expr.inspect}"
+            []
+          end
+        end
+      end
+    end
+
+    def extract_from_sexp(sexp)
+      root_matcher.apply(sexp)
     end
 
     private
       def handle_massign_lhs(lhs)
         return [] unless lhs
-        p = Patm
         if lhs.size > 0 && lhs[0].is_a?(Symbol)
           lhs = [lhs]
         end
-        lhs.flat_map {|expr|
-          case expr
-          when m = p.match([:@ident, p._1, [p._2, p._3]])
-            [[m._1, m._2, m._3]]
-          when m = p.match([:mlhs_paren, p._1])
-            handle_massign_lhs(m._1)
-          when m = p.match([:mlhs_add_star, p._1, p._2])
-            handle_massign_lhs(m._1) + handle_massign_lhs([m._2])
-          else
-            puts "WARN: Unsupported ast item in handle_massign_lhs: #{expr.inspect}"
-            []
-          end
-        }
+        matcher = massign_lhs_matcher
+        lhs.flat_map {|expr| matcher.apply expr }
       end
 
       def handle_normal_params(list)
