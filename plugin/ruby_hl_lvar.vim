@@ -21,15 +21,15 @@ function! Ruby_hl_lvar_filetype()
 	execute 'augroup '.groupname
 		autocmd!
 		if &filetype ==# 'ruby'
-			autocmd TextChanged <buffer> call ruby_hl_lvar#refresh('%')
-			autocmd InsertEnter <buffer> call ruby_hl_lvar#disable('%')
-			autocmd InsertLeave <buffer> call ruby_hl_lvar#refresh('%')
-			autocmd BufWinEnter <buffer> call ruby_hl_lvar#enable('%')
-			autocmd BufWinLeave <buffer> call ruby_hl_lvar#disable('%')
+			autocmd TextChanged <buffer> call ruby_hl_lvar#refresh('%', 0)
+			autocmd InsertEnter <buffer> call ruby_hl_lvar#disable('%', 0)
+			autocmd InsertLeave <buffer> call ruby_hl_lvar#refresh('%', 0)
+			autocmd BufWinEnter <buffer> call ruby_hl_lvar#enable('%', 0)
+			autocmd BufWinLeave <buffer> call ruby_hl_lvar#disable('%', 0)
 		endif
 	augroup END
 endfunction
 
-nnoremap <Plug>(ruby_hl_lvar-enable) :<C-U>call ruby_hl_lvar#enable('%')<CR>
-nnoremap <Plug>(ruby_hl_lvar-disable) :<C-U>call ruby_hl_lvar#disable('%')<CR>
-nnoremap <Plug>(ruby_hl_lvar-refresh) :<C-U>call ruby_hl_lvar#refresh('%')<CR>
+nmap <Plug>(ruby_hl_lvar-enable) :<C-U>call ruby_hl_lvar#enable('%', 1)<CR>
+nmap <Plug>(ruby_hl_lvar-disable) :<C-U>call ruby_hl_lvar#disable('%', 1)<CR>
+nmap <Plug>(ruby_hl_lvar-refresh) :<C-U>call ruby_hl_lvar#refresh('%', 1)<CR>
