@@ -83,6 +83,8 @@ module RubyHlLvar
       case sexp
       when m = p.match([:void_stmt])
         []
+      when m = p.match([:vcall, _any])
+        []
       when m = p.match([:program, _1])
         # root
         m._1.flat_map {|subtree| extract_from_sexp(subtree) }
