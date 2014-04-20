@@ -61,7 +61,7 @@ module Patm
       end
 
       def execute(mmatch, obj)
-        @obj == obj
+        @obj === obj
       end
     end
 
@@ -113,14 +113,35 @@ module Patm
   GROUP = 100.times.map{|i| Pattern::Group.new(i) }
   ARRAY_REST = Pattern::ArrRest.new
 
-  class Match
-    def initialize(pat)
-      @pat = pat
-      @group = {}
+  class Rule
+    def initialize(&block)
+      # { Pattern => Proc }
+      @rules = []
+      block[self]
     end
 
-    def ===(obj)
-      @pat.execute(self, obj)
+    def on(pat, &block)
+      @rules << [Pattern.build_from(pat), block]
+    end
+
+    def else(&block)
+      @rules << [ANY, lambda {|m,o| block[o] }]
+    end
+
+    def apply(obj)
+      match = Match.new
+      @rules.each do|(pat, block)|
+        if pat.execute(match, obj)
+          return block.call(match, obj)
+        end
+      end
+      nil
+    end
+  end
+
+  class Match
+    def initialize
+      @group = {}
     end
 
     def [](i)
@@ -138,8 +159,26 @@ module Patm
     end
   end
 
+  class CaseBinder
+    def initialize(pat)
+      @pat = pat
+      @match = Match.new
+    end
+
+    def ===(obj)
+      @pat.execute(@match, obj)
+    end
+
+    def [](i); @match[i]; end
+    Patm::GROUP.each do|g|
+      define_method "_#{g.index}" do
+        @match[g.index]
+      end
+    end
+  end
+
   def self.match(plain_pat)
-    Match.new(Pattern.build_from(plain_pat))
+    CaseBinder.new Pattern.build_from(plain_pat)
   end
 
   def self.match_array(head, rest_spat = nil, tail = [])
