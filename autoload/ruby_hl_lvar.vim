@@ -1,13 +1,12 @@
-let g:ruby_hl_lvars_hl_group =
-	\ get(g:, 'ruby_hl_lvars_hl_group', 'Identifier')
-
-
 let s:self_path=expand("<sfile>")
 
 execute 'rubyfile '.s:self_path.'.rb'
 
 " bufnr => match_id
 let s:match_ids = {}
+
+" bufnr => match_pattern
+let s:match_patterns = {}
 
 " return: [[var_name, row, col_start, col_end]...]
 function! ruby_hl_lvar#extract_lvars(buffer) abort
@@ -21,14 +20,39 @@ function! ruby_hl_lvar#extract_lvars(buffer) abort
   return ret
 endfunction
 
-function! ruby_hl_lvar#highlight(buffer) abort
+function! ruby_hl_lvar#disable(buffer) abort
+	let bufnr = bufnr(a:buffer)
+	if has_key(s:match_ids, bufnr) && s:match_ids[bufnr] > 0
+		try
+			call matchdelete(s:match_ids[bufnr])
+		catch '^E803:'
+		endtry
+		unlet s:match_ids[bufnr]
+	endif
+endfunction
+
+function! ruby_hl_lvar#enable(buffer) abort
+	let bufnr = bufnr(a:buffer)
+	call ruby_hl_lvar#disable(a:buffer)
+	if !has_key(s:match_patterns, bufnr)
+		call ruby_hl_lvar#update_match_pattern(a:buffer)
+	endif
+	let s:match_ids[bufnr] = matchadd(g:ruby_hl_lvar_hl_group, s:match_patterns[bufnr])
+endfunction
+
+function! ruby_hl_lvar#refresh(buffer) abort
+	let bufnr = bufnr(a:buffer)
+	if has_key(s:match_patterns, bufnr)
+		unlet s:match_patterns[bufnr]
+	endif
+	call ruby_hl_lvar#enable(a:buffer)
+endfunction
+
+function! ruby_hl_lvar#update_match_pattern(buffer) abort
 	let bufnr = bufnr(a:buffer)
 	let matches = map(ruby_hl_lvar#extract_lvars(a:buffer), '
 		\ ''\%''.v:val[1].''l''.''\%''.v:val[2].''c''.repeat(''.'', strchars(v:val[0]))
 		\ ')
-	if has_key(s:match_ids, bufnr) && s:match_ids[bufnr] > 0
-		call matchdelete(s:match_ids[bufnr])
-	endif
-	let s:match_ids[bufnr] = matchadd(g:ruby_hl_lvars_hl_group, join(matches, '\|'))
+	let s:match_patterns[bufnr] = join(matches, '\|')
 endfunction
 
