@@ -90,6 +90,9 @@ module RubyHlLvar
       when m = p.match([:def, _any, _any, [:bodystmt, _2, _any, _any, _any]])
         # TODO: extract from params
         m._2.flat_map{|st| extract_from_sexp(st) }
+      when m = p.match([:method_add_arg, _1, [:arg_paren, [:args_add_block, _2, _any]]])
+        # TODO: extract from _1
+        m._2.flat_map{|expr| extract_from_sexp(expr) }
       when m = p.match_array([:defs], _1, [_any, [:bodystmt, _2, _any, _any, _any]])
         # TODO: extract from lvar reference
         # TODO: extract from params

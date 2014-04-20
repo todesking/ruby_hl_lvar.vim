@@ -52,7 +52,9 @@ describe RubyHlLvar::Extractor do
       it { "x = 1; x + y".should_extract_to [["x", 1, 0], ["x", 1, 7]] }
     end
     context "lvar reference in method call lhs"
-    context "lvar reference in method call argument"
+    context "lvar reference in method call argument" do
+      it { "x=1\nfoo(x,y,z)".should_extract_to [["x", 1, 0], ["x", 2, 4]] }
+    end
     context "lvar reference in block"
     context "lvar reference in method body" do
       it { "def foo\nx=1\nend".should_extract_to [["x", 2, 0]] }
