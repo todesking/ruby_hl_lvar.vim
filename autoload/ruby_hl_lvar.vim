@@ -119,6 +119,9 @@ module RubyHlLvar
         }
       when m = p.match([:module, _any, [:bodystmt, _1, _any, _any, _any]])
         m._1.flat_map {|subtree| extract_from_sexp(subtree) }
+      when m = p.match([:def, _1, _any, [:bodystmt, _2, _any, _any, _any]])
+        # TODO: extract from lvar reference
+        m._2.flat_map{|st| extract_from_sexp(st) }
       else
         puts "WARN: Unsupported ast item: #{sexp.inspect}"
         []
