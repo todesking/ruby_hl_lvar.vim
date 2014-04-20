@@ -24,6 +24,11 @@ describe RubyHlLvar::Extractor do
       }
     end
 
+    context "lhs of assignment" do
+      it { "a = 1\nb = a".should_extract_to [["a", 1, 0], ["b", 2, 0], ["a", 2, 4]] }
+      it { "a = 1\n(a, b) = a".should_extract_to [["a", 1, 0], ["a", 2, 1], ["b", 2, 4], ["a", 2, 9]] }
+    end
+
     context "with complex mass assignment" do
       it { '(a, (b, c)), d = foo'.should_extract_to [["a", 1, 1], ["b", 1, 5], ["c", 1, 8], ["d", 1, 13]] }
     end
@@ -97,6 +102,11 @@ describe RubyHlLvar::Extractor do
       it { "def f(x)\nx\nend".should_extract_to [["x", 1, 6], ["x", 2, 0]] }
       it { "def f(*x)\nx\nend".should_extract_to [["x", 1, 7], ["x", 2, 0]] }
       it { "def f(x=0)\nx\nend".should_extract_to [["x", 1, 6], ["x", 2, 0]] }
+    end
+
+    context "method_arg" do
+      it { "x=10;\nfoo(x)".should_extract_to [["x", 1, 0], ["x", 2, 4]] }
+      it { "x=10;\na.b(x)".should_extract_to [["x", 1, 0], ["x", 2, 4]] }
     end
   end
 end

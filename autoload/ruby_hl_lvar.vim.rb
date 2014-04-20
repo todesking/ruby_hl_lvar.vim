@@ -45,14 +45,15 @@ module RubyHlLvar
       _1 = p._1
       _2 = p._2
       _3 = p._3
+      _4 = p._4
 
       case sexp
-      when m = p.match([:assign, [:var_field, [:@ident, _1, [_2, _3]]], _any])
+      when m = p.match([:assign, [:var_field, [:@ident, _1, [_2, _3]]], _4])
         # single assignment
-        [[m._1, m._2, m._3]]
+        [[m._1, m._2, m._3]] + extract_from_sexp(m._4)
       when m = p.match([:massign, _1, _2])
         # mass assignment
-        handle_massign_lhs(m._1)
+        handle_massign_lhs(m._1) + extract_from_sexp(m._2)
       when m = p.match([:var_ref, [:@ident, _1, [_2, _3]]])
         # local variable reference
         [[m._1, m._2, m._3]]
@@ -155,7 +156,7 @@ module RubyHlLvar
 
       class Arr < self
         def initialize(head, rest = nil, tail = [])
-          @head =head
+          @head = head
           @rest = rest
           @tail = tail
         end
