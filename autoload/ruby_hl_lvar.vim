@@ -98,9 +98,9 @@ module RubyHlLvar
         [[m._1, m._2, m._3]]
       when m = p.match([:binary, _1, _any, _2])
         extract_from_sexp(m._1) + extract_from_sexp(m._2)
-      when m = p.match([:method_add_block, _any, [p.or(:brace_block, :do_block), [:block_var, _1, _any], _2]])
+      when m = p.match([:method_add_block, _any, [p.or(:brace_block, :do_block), p.or(nil, [:block_var, _1, _any]), _2]])
         # block args
-        handle_block_var(m._1) +
+        (m._1 ? handle_block_var(m._1) : []) +
           # block body
           m._2.flat_map {|subtree| extract_from_sexp(subtree) }
       when m = p.match([:string_literal, [:string_content, _xs&_1]])
