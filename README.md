@@ -14,11 +14,7 @@ Bug reports are welcome.
 
 ## Usage
 
-Since this plugin is under contruction, you can highlight manually:
-
-```vim
-call ruby_hl_lvar#highlight('%')
-```
+Install and open any .rb file. Advanced usage is below.
 
 ## Settings
 
