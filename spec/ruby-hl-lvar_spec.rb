@@ -1,3 +1,4 @@
+require 'pry'
 load File.join(File.dirname(__FILE__), "..", "autoload", "ruby_hl_lvar.vim")
 
 class String
@@ -60,6 +61,10 @@ describe RubyHlLvar::Extractor do
 
     context "lvar reference in module definition" do
       it { "module A;\nx = 1;\nx; end".should_extract_to [["x", 2, 0], ["x", 3, 0]] }
+    end
+
+    context "string literal" do
+      it { "x=0\n\"x\#{x}x\"".should_extract_to [["x", 1, 0], ["x", 2, 4]] }
     end
 
     it "with complex block parameter like {|a, (b, c)| }"

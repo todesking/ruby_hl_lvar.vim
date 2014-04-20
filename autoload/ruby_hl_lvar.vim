@@ -74,6 +74,7 @@ module RubyHlLvar
     def extract_from_sexp(sexp)
       p = SexpMatcher
       _any = p::ANY
+      _xs = p::ARRAY_REST
 
       _1 = p._1
       _2 = p._2
@@ -100,6 +101,18 @@ module RubyHlLvar
         handle_block_var(m._1) +
           # block body
           m._2.flat_map {|subtree| extract_from_sexp(subtree) }
+      when m = p.match([:string_literal, [:string_content, _xs&_1]])
+        m._1.flat_map {|content|
+          case content
+          when m_ = p.match([:string_embexpr, _1])
+            m_._1.flat_map {|expr| extract_from_sexp(expr) }
+          when m_ = p.match([:@tstring_content, _any, _any])
+            []
+          else
+            puts "WARN: Unsupported ast item: #{content.inspect}"
+            []
+          end
+        }
       when m = p.match([:module, _any, [:bodystmt, _1, _any, _any, _any]])
         m._1.flat_map {|subtree| extract_from_sexp(subtree) }
       else
@@ -143,28 +156,50 @@ module RubyHlLvar
     class SpecialPat
       def execute(match, obj); true; end
 
+      def rest?
+        false
+      end
+
       def self.build_from(plain)
         case plain
         when SpecialPat
           plain
         when Array
-          Arr.new(plain.map{|p| build_from(p) })
+          if plain.last.is_a?(SpecialPat) && plain.last.rest?
+            Arr.new(plain[0..-2].map{|p| build_from(p) }, plain.last)
+          else
+            Arr.new(plain.map{|p| build_from(p) })
+          end
         else
           Obj.new(plain)
         end
       end
 
+      def &(rhs)
+        And.new([self, rhs])
+      end
+
       class Arr < self
-        def initialize(pats)
+        def initialize(pats, rest = nil)
           @pats = pats
+          @rest = rest
         end
 
         def execute(mmatch, obj)
           return false unless obj.is_a?(Array)
-          return false unless obj.size == @pats.size
-          @pats.zip(obj).all? do|pat, o|
+          return false unless @rest ? (obj.size >= @pats.size) :  (obj.size == @pats.size)
+          @pats.zip(obj).all? {|pat, o|
             pat.execute(mmatch, o)
-          end
+          } && (!@rest || @rest.execute(mmatch, obj[@pats.size..-1]))
+        end
+      end
+
+      class ArrRest < self
+        def execute(mmatch, obj)
+          true
+        end
+        def rest?
+          true
         end
       end
 
@@ -202,11 +237,29 @@ module RubyHlLvar
             pat.execute(mmatch, obj)
           end
         end
+        def rest?
+          @pats.any?(&rest?)
+        end
+      end
+
+      class And <self
+        def initialize(pats)
+          @pats = pats
+        end
+        def execute(mmatch, obj)
+          @pats.all? do|pat|
+            pat.execute(mmatch, obj)
+          end
+        end
+        def rest?
+          @pats.any?(&:rest?)
+        end
       end
     end
 
     ANY = SpecialPat::Any.new
     GROUP = 100.times.map{|i| SpecialPat::Group.new(i) }
+    ARRAY_REST = SpecialPat::ArrRest.new
 
     class MutableMatch
       def initialize(pat)
