@@ -107,6 +107,7 @@ describe RubyHlLvar::Extractor do
       it { "def f(x)\nx\nend".should_extract_to [["x", 1, 6], ["x", 2, 0]] }
       it { "def f(*x)\nx\nend".should_extract_to [["x", 1, 7], ["x", 2, 0]] }
       it { "def f(x=0)\nx\nend".should_extract_to [["x", 1, 6], ["x", 2, 0]] }
+      it { "def f(&x)\nx\nend".should_extract_to [["x", 1, 7], ["x", 2, 0]] }
     end
 
     context "method_arg" do
@@ -114,7 +115,6 @@ describe RubyHlLvar::Extractor do
       it { "x=10;\na.b(x)".should_extract_to [["x", 1, 0], ["x", 2, 4]] }
     end
 
-    context "block argument"
     context "field assignment"
     context "field assignment in mass assignment"
     context "ivar assignment in mass assignment"

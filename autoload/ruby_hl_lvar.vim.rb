@@ -112,7 +112,7 @@ module RubyHlLvar
     def extract_from_sexp(obj)
       match(:root, obj) do|r|
         p = Patm
-        _any = p::ANY
+        __ = p::ANY
         _xs = p::ARRAY_REST
 
         _1 = p._1
@@ -133,8 +133,11 @@ module RubyHlLvar
           [[m._1, m._2, m._3]]
         end
         # method params
-        r.on [:params, _1, _2, _3, _xs] do|m|
-          handle_normal_params(m._1) + handle_default_params(m._2) + handle_rest_param(m._3)
+        r.on [:params, _xs&_1] do|m|
+          handle_normal_params(m._1[0]) +
+            handle_default_params(m._1[1]) +
+            handle_rest_param(m._1[2]) +
+            handle_block_param(m._1[6])
         end
         r.on p.or(nil, true, false, Numeric, String, Symbol, []) do|m|
           []
@@ -198,6 +201,22 @@ module RubyHlLvar
           end
           r.else do|obj|
             puts "WARN: Unsupported ast item in handle_rest_params: #{obj.inspect}"
+            []
+          end
+        end
+      end
+
+      def handle_block_param(block)
+        match(:block_param, block) do|r|
+          p = ::Patm
+          r.on [:blockarg, [:@ident, p._1, [p._2, p._3]]] do|m|
+            [[m._1, m._2, m._3]]
+          end
+          r.on nil do
+            []
+          end
+          r.else do|obj|
+            puts "WARN: Unsupported ast item in handle_block_params: #{obj.inspect}"
             []
           end
         end
