@@ -82,6 +82,8 @@ module RubyHlLvar
             []
           end
         }
+      when m = p.match([:array, _1])
+        m._1.flat_map{|expr| extract_from_sexp(expr) }
       when m = p.match([:module, _any, [:bodystmt, _1, _any, _any, _any]])
         m._1.flat_map {|subtree| extract_from_sexp(subtree) }
       when m = p.match([:class, _any, _any, [:bodystmt, _1, _any, _any, _any]])
@@ -108,6 +110,9 @@ module RubyHlLvar
     private
       def handle_massign_lhs(lhs)
         p = SexpMatcher
+        if lhs.size > 0 && lhs[0].is_a?(Symbol)
+          lhs = [lhs]
+        end
         lhs.flat_map {|expr|
           case expr
           when m = p.match([:@ident, p._1, [p._2, p._3]])
@@ -115,22 +120,17 @@ module RubyHlLvar
           when m = p.match([:mlhs_paren, p._1])
             handle_massign_lhs(m._1)
           else
+            puts "WARN: Unsupported ast item in handle_massign_lhs: #{expr.inspect}"
             []
           end
         }
       end
       def handle_block_var(params)
-        p = SexpMatcher
         if params && params[0] == :params
-          params[1].map {|param|
-            case param
-            when m = p.match([:@ident, p._1, [p._2, p._3]])
-              [m._1, m._2, m._3]
-            else
-              []
-            end
-          }
+          puts params.inspect
+          handle_massign_lhs params[1]
         else
+          puts "WARN: Unsupported ast item in handle_block_var: #{params.inspect}"
           []
         end
       end

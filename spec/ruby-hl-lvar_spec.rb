@@ -40,8 +40,14 @@ describe RubyHlLvar::Extractor do
     context "with simple block(do ... end) parameter" do
       it { "foo do|a|; end".should_extract_to [["a", 1, 7]] }
     end
+    context "complex block args" do
+      it { "foo {|(a,(b,c))| }".should_extract_to [["a", 1, 7], ["b", 1, 10], ["c", 1, 12]] }
+    end
     context "with lvar reference in block body" do
       it { "foo {|x| x}".should_extract_to [["x", 1, 6], ["x", 1, 9]] }
+    end
+    context "array" do
+      it { "a,b=x\n[a,b,c]".should_extract_to [["a", 1, 0], ["b", 1, 2], ["a", 2, 1], ["b", 2, 3]] }
     end
 
     context "bare lvar reference" do
@@ -54,6 +60,14 @@ describe RubyHlLvar::Extractor do
     context "lvar reference in method call lhs"
     context "lvar reference in method call argument with ()" do
       it { "x=1\nfoo(x,y,z)".should_extract_to [["x", 1, 0], ["x", 2, 4]] }
+    end
+    context "method call with no args" do
+      it { "foo()".should_extract_to [] }
+      it { "foo".should_extract_to [] }
+    end
+    context "block with no args" do
+      it { "foo(){}".should_extract_to [] }
+      it { "foo {}".should_extract_to [] }
     end
     context "lvar reference in method call argument without ()" do
       it { "x=1\nfoo x,y,z".should_extract_to [["x", 1, 0], ["x", 2, 4]] }
