@@ -115,8 +115,9 @@ describe RubyHlLvar::Extractor do
       it { "x=10;\na.b(x)".should_extract_to [["x", 1, 0], ["x", 2, 4]] }
     end
 
-    context "field assignment"
-    context "field assignment in mass assignment"
-    context "ivar assignment in mass assignment"
+    context "field mass assignment" do
+      it { "x.y, z = 1, 2".should_extract_to [["z", 1, 5]] }
+    end
+    context "ivar mass assignment in mass assignment"
   end
 end

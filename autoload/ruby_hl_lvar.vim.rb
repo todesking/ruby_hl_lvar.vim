@@ -88,27 +88,6 @@ module RubyHlLvar
       end
     end
 
-    def massign_lhs_matcher
-      @massign_lhs_matcher ||= begin
-        p = Patm
-        ::Patm::Rule.new do|r|
-          r.on [:@ident, p._1, [p._2, p._3]] do|m|
-            [[m._1, m._2, m._3]]
-          end
-          r.on [:mlhs_paren, p._1] do|m|
-            handle_massign_lhs(m._1)
-          end
-          r.on [:mlhs_add_star, p._1, p._2] do|m|
-            handle_massign_lhs(m._1) + handle_massign_lhs([m._2])
-          end
-          r.else do|expr|
-            puts "WARN: Unsupported ast item in handle_massign_lhs: #{expr.inspect}"
-            []
-          end
-        end
-      end
-    end
-
     def extract_from_sexp(obj)
       match(:root, obj) do|r|
         p = Patm
@@ -177,6 +156,9 @@ module RubyHlLvar
             end
             r.on [:mlhs_add_star, p._1, p._2] do|m|
               handle_massign_lhs(m._1) + handle_massign_lhs([m._2])
+            end
+            r.on [:field, p::ARRAY_REST] do
+              []
             end
             r.else do|obj|
               puts "WARN: Unsupported ast item in handle_massign_lhs: #{obj.inspect}"
