@@ -1,5 +1,5 @@
 require 'pry'
-load File.join(File.dirname(__FILE__), "..", "autoload", "ruby_hl_lvar.vim")
+load File.join(File.dirname(__FILE__), "..", "autoload", "ruby_hl_lvar.vim.rb")
 
 class String
   def should_extract_to(expected)
