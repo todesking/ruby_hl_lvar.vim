@@ -60,7 +60,9 @@ describe RubyHlLvar::Extractor do
     context "lvar reference in singleton body" do
       it { "def x.foo\nx=1\nend".should_extract_to [["x", 2, 0]] }
     end
-    context "lvar reference in method class body"
+    context "lvar reference in class body" do
+      it { "class A\nx = 10\nend".should_extract_to [["x", 2, 0]] }
+    end
     context "lvar reference in method module body"
     context "method reference in expr should ignored"
 
