@@ -26,6 +26,8 @@ function! Ruby_hl_lvar_filetype()
 			autocmd InsertLeave <buffer> call ruby_hl_lvar#refresh('%', 0)
 			autocmd BufWinEnter <buffer> call ruby_hl_lvar#enable('%', 0)
 			autocmd BufWinLeave <buffer> call ruby_hl_lvar#disable('%', 0)
+			autocmd BufEnter    <buffer> call ruby_hl_lvar#enable('%', 0)
+			autocmd BufLeave    <buffer> call ruby_hl_lvar#disable('%', 0)
 		endif
 	augroup END
 endfunction

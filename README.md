@@ -35,4 +35,4 @@ nmap <leader>hr <Plug>(ruby_hl_lvar-refresh)
 
 ## Known bugs
 
-- Sometimes highlight contaminate other buffers
+- -Sometimes highlight contaminate other buffers- (hopefully fixed)
