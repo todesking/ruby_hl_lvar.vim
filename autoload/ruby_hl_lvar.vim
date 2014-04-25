@@ -2,6 +2,26 @@ let s:self_path=expand("<sfile>")
 
 execute 'rubyfile '.s:self_path.'.rb'
 
+function! ruby_hl_lvar#redraw() abort
+	let bufnr = bufnr('%')
+
+	" Remove current match if exists and its not for current buffer
+	if exists('w:ruby_hl_lvar_current_hl_bufnr')
+		if w:ruby_hl_lvar_current_hl_bufnr == bufnr
+			return
+		else
+			call s:try_matchdelete(w:ruby_hl_lvar_match_id)
+			unlet w:ruby_hl_lvar_current_hl_bufnr
+		endif
+	endif
+
+	" Set match if exists
+	if get(b:, 'ruby_hl_lvar_enabled', 1) && exists('b:ruby_hl_lvar_match_pattern')
+		let w:ruby_hl_lvar_match_id = matchadd(g:ruby_hl_lvar_hl_group, b:ruby_hl_lvar_match_pattern)
+		let w:ruby_hl_lvar_current_hl_bufnr = bufnr
+	endif
+endfunction
+
 " return: [[var_name, row, col_start, col_end]...]
 function! ruby_hl_lvar#extract_lvars(buffer) abort
   let bufnr = bufnr(a:buffer)
@@ -16,51 +36,51 @@ function! ruby_hl_lvar#extract_lvars(buffer) abort
   return ret
 endfunction
 
-function! ruby_hl_lvar#disable(buffer, force) abort
+function! ruby_hl_lvar#disable(force) abort
 	if !a:force && exists('b:ruby_hl_lvar_enabled') && !b:ruby_hl_lvar_enabled
 		return
 	endif
-	let bufnr = bufnr(a:buffer)
-	if exists('b:ruby_hl_lvar_match_id') && b:ruby_hl_lvar_match_id > 0
-		call s:try_matchdelete(b:ruby_hl_lvar_match_id)
-		unlet b:ruby_hl_lvar_match_id
-	endif
+	let bufnr = bufnr('%')
 	if a:force
 		let b:ruby_hl_lvar_enabled = 0
 	endif
+	call ruby_hl_lvar#redraw()
 endfunction
 
 function! s:try_matchdelete(id)
+	if a:id < 0
+		return
+	endif
 	try
 		call matchdelete(a:id)
 	catch /E803:/
 	endtry
 endfunction
 
-function! ruby_hl_lvar#enable(buffer, force) abort
+function! ruby_hl_lvar#enable(force) abort
 	if !a:force && exists('b:ruby_hl_lvar_enabled') && !b:ruby_hl_lvar_enabled
 		return
 	endif
-	let bufnr = bufnr(a:buffer)
-	call ruby_hl_lvar#disable(a:buffer, a:force)
+	let bufnr = bufnr('%')
+	call ruby_hl_lvar#disable(a:force)
 	if !exists('b:ruby_hl_lvar_match_pattern')
-		call ruby_hl_lvar#update_match_pattern(a:buffer)
+		call ruby_hl_lvar#update_match_pattern('%')
 	endif
-	let b:ruby_hl_lvar_match_id = matchadd(g:ruby_hl_lvar_hl_group, b:ruby_hl_lvar_match_pattern)
 	if a:force
 		let b:ruby_hl_lvar_enabled = 1
 	endif
+
+	call ruby_hl_lvar#redraw()
 endfunction
 
-function! ruby_hl_lvar#refresh(buffer, force) abort
+function! ruby_hl_lvar#refresh(force) abort
 	if !a:force && exists('b:ruby_hl_lvar_enabled') && !b:ruby_hl_lvar_enabled
 		return
 	endif
-	let bufnr = bufnr(a:buffer)
 	if exists('b:ruby_hl_lvar_match_pattern')
 		unlet b:ruby_hl_lvar_match_pattern
 	endif
-	call ruby_hl_lvar#enable(a:buffer, a:force)
+	call ruby_hl_lvar#enable(a:force)
 endfunction
 
 function! ruby_hl_lvar#update_match_pattern(buffer) abort
