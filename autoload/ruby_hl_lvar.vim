@@ -2,23 +2,25 @@ let s:self_path=expand("<sfile>")
 
 execute 'rubyfile '.s:self_path.'.rb'
 
+let s:hl_version = 0
+
 function! ruby_hl_lvar#redraw() abort
 	let bufnr = bufnr('%')
 
 	" Remove current match if exists and its not for current buffer
-	if exists('w:ruby_hl_lvar_current_hl_bufnr')
-		if w:ruby_hl_lvar_current_hl_bufnr == bufnr
+	if exists('w:ruby_hl_lvar_hl_version')
+		if exists('b:ruby_hl_lvar_hl_version') && w:ruby_hl_lvar_hl_version == b:ruby_hl_lvar_hl_version
 			return
 		else
 			call s:try_matchdelete(w:ruby_hl_lvar_match_id)
-			unlet w:ruby_hl_lvar_current_hl_bufnr
+			unlet w:ruby_hl_lvar_hl_version
 		endif
 	endif
 
 	" Set match if exists
 	if get(b:, 'ruby_hl_lvar_enabled', 1) && exists('b:ruby_hl_lvar_match_pattern')
 		let w:ruby_hl_lvar_match_id = matchadd(g:ruby_hl_lvar_hl_group, b:ruby_hl_lvar_match_pattern)
-		let w:ruby_hl_lvar_current_hl_bufnr = bufnr
+		let w:ruby_hl_lvar_hl_version = b:ruby_hl_lvar_hl_version
 	endif
 endfunction
 
@@ -89,5 +91,7 @@ function! ruby_hl_lvar#update_match_pattern(buffer) abort
 		\ ''\%''.v:val[1].''l''.''\%''.v:val[2].''c''.repeat(''.'', strchars(v:val[0]))
 		\ ')
 	let b:ruby_hl_lvar_match_pattern = join(matches, '\|')
+	let s:hl_version += 1
+	let b:ruby_hl_lvar_hl_version = s:hl_version
 endfunction
 
