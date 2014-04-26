@@ -107,6 +107,10 @@ module RubyHlLvar
         r.on [:massign, _1, _2] do|m|
           handle_massign_lhs(m._1) + extract_from_sexp(m._2)
         end
+        # +=
+        r.on [:opassign, [:var_field, [:@ident, _1, [_2, _3]]], __, _4] do|m|
+          [[m._1, m._2, m._3]] + extract_from_sexp(m._4)
+        end
         # local variable reference
         r.on [:var_ref, [:@ident, _1, [_2, _3]]] do|m|
           [[m._1, m._2, m._3]]

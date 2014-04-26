@@ -121,5 +121,9 @@ describe RubyHlLvar::Extractor do
     context "ivar mass assignment" do
       it { "@a, @b = 1, 2".should_extract_to [] }
     end
+
+    context "+=" do
+      it { "a += 1".should_extract_to [["a", 1, 0]] }
+    end
   end
 end
