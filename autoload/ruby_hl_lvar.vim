@@ -39,10 +39,11 @@ function! ruby_hl_lvar#extract_lvars(buffer) abort
 endfunction
 
 function! ruby_hl_lvar#disable(force) abort
-	if !a:force && exists('b:ruby_hl_lvar_enabled') && !b:ruby_hl_lvar_enabled
-		return
-	endif
 	let bufnr = bufnr('%')
+	if exists('b:ruby_hl_lvar_match_pattern')
+		unlet b:ruby_hl_lvar_match_pattern
+		unlet b:ruby_hl_lvar_hl_version
+	endif
 	if a:force
 		let b:ruby_hl_lvar_enabled = 0
 	endif
