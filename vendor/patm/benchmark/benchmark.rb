@@ -8,7 +8,7 @@ def match_with_case(obj)
   _2 = P._2
   _3 = P._3
   _4 = P._4
-  _xs = P::ARRAY_REST
+  _xs = P._xs
 
   case obj
   when m = P.match([:assign, [:var_field, [:@ident, _1, [_2, _3]]], _4])
@@ -31,7 +31,7 @@ end
   _2 = P._2
   _3 = P._3
   _4 = P._4
-  _xs = P::ARRAY_REST
+  _xs = P._xs
 
   r.on [:assign, [:var_field, [:@ident, _1, [_2, _3]]], _4] do|m|
     :as
@@ -53,7 +53,7 @@ end
   end
 end
 
-@rule = P::Rule.new(&@ruledef)
+@rule = P::Rule.new(false, &@ruledef)
 @compiled_rule = P::Rule.new(true, &@ruledef)
 
 def match_with_rule(obj)

@@ -100,6 +100,38 @@ describe "Usage:" do
 
     rs.match(:pattern_1, [1, 3, 5]) {|r| fail "should not reach here" }.should == [3, 5]
   end
+
+  it 'with DSL' do
+    o = Object.new
+    class <<o
+      extend ::Patm::DSL
+      define_matcher :match1 do|r|
+        r.on [1, 2, ::Patm._1] do|m|
+          m._1
+        end
+        r.else do|obj|
+          obj.to_s
+        end
+      end
+
+      define_matcher :match2 do|r|
+        r.on [1] do
+          1
+        end
+        r.on [1, ::Patm._xs & ::Patm._1] do|m|
+          m._1
+        end
+      end
+    end
+
+    o.match1([1, 2, 3]).should == 3
+    o.match1([1, 2, 4]).should == 4
+    o.match1([1, 2]).should == "[1, 2]"
+
+    o.match2([1]).should == 1
+    o.match2([1, 2, 3]).should == [2, 3]
+    o.match2(111).should == nil
+  end
 end
 
 describe Patm::Pattern do

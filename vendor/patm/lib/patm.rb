@@ -290,6 +290,10 @@ module Patm
     end
   end
 
+  def self.match(plain_pat)
+    CaseBinder.new Pattern.build_from(plain_pat)
+  end
+
   class Rule
     def initialize(compile = true, &block)
       @compile = compile
@@ -373,7 +377,13 @@ module Patm
     end
   end
 
-  def self.match(plain_pat)
-    CaseBinder.new Pattern.build_from(plain_pat)
+  module DSL
+    def define_matcher(name, &rule)
+      @patm_rules ||= RuleCache.new
+      rules = @patm_rules
+      define_method name do|obj|
+        rules.match(name, obj, &rule)
+      end
+    end
   end
 end

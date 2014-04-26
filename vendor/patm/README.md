@@ -76,8 +76,34 @@ class A
 end
  ```
 
+```ruby
+# With DSL
+class A
+  extend ::Patm::DSL
+
+  define_matcher :match1 do|r|
+    p = Patm
+    r.on [:x, p._1, p._2] do|m|
+      [m._1, m._2]
+    end
+  end
+
+  define_matcher :match2 do|r|
+    # ...
+  end
+end
+
+A.new.match1([:x, 1, 2])
+# => [1, 2]
+ ```
 
 ## Changes
+
+### x.x.x
+
+- DSL
+- Compile is enabled by default
+- Change interface
 
 ### 0.1.0
 
