@@ -31,149 +31,140 @@ end
 
 module RubyHlLvar
   class Extractor
-    def initialize
-      # rule_name => Patm::Rule
-      @rules = Patm::RuleCache.new
-    end
+    extend ::Patm::DSL
+
     # source:String -> [ [lvar_name:String, line:Numeric, col:Numeric]... ]
     def extract(source)
       sexp = Ripper.sexp(source)
       extract_from_sexp(sexp)
     end
 
-    def extract_from_sexp(obj)
-      @rules.match(:root, obj) do|r|
-        p = Patm
-        __ = p._any
-        _xs = p._xs
+    define_matcher :extract_from_sexp do|r, _self|
+      p = Patm
+      __ = p._any
+      _xs = p._xs
 
-        _1 = p._1
-        _2 = p._2
-        _3 = p._3
-        _4 = p._4
+      _1 = p._1
+      _2 = p._2
+      _3 = p._3
+      _4 = p._4
 
-        # single assignment
-        r.on [:assign, [:var_field, [:@ident, _1, [_2, _3]]], _4] do|m|
-          [[m._1, m._2, m._3]] + extract_from_sexp(m._4)
-        end
-        # mass assignment
-        r.on [:massign, _1, _2] do|m|
-          handle_massign_lhs(m._1) + extract_from_sexp(m._2)
-        end
-        # +=
-        r.on [:opassign, [:var_field, [:@ident, _1, [_2, _3]]], __, _4] do|m|
-          [[m._1, m._2, m._3]] + extract_from_sexp(m._4)
-        end
-        # local variable reference
-        r.on [:var_ref, [:@ident, _1, [_2, _3]]] do|m|
-          [[m._1, m._2, m._3]]
-        end
-        # method params
-        r.on [:params, _xs&_1] do|m|
-          handle_normal_params(m._1[0]) +
-            handle_default_params(m._1[1]) +
-            handle_rest_param(m._1[2]) +
-            handle_block_param(m._1[6])
-        end
-        r.on p.or(nil, true, false, Numeric, String, Symbol, []) do|m|
-          []
-        end
-        r.else do|sexp|
-          if sexp.is_a?(Array) && sexp.size > 0
-            if sexp[0].is_a?(Symbol) # some struct
-              sexp[1..-1].flat_map {|elm| extract_from_sexp(elm) }
-            else
-              sexp.flat_map{|elm| extract_from_sexp(elm) }
-            end
+      # single assignment
+      r.on [:assign, [:var_field, [:@ident, _1, [_2, _3]]], _4] do|m|
+        [[m._1, m._2, m._3]] + _self.extract_from_sexp(m._4)
+      end
+      # mass assignment
+      r.on [:massign, _1, _2] do|m|
+        _self.handle_massign_lhs(m._1) + _self.extract_from_sexp(m._2)
+      end
+      # +=
+      r.on [:opassign, [:var_field, [:@ident, _1, [_2, _3]]], __, _4] do|m|
+        [[m._1, m._2, m._3]] + _self.extract_from_sexp(m._4)
+      end
+      # local variable reference
+      r.on [:var_ref, [:@ident, _1, [_2, _3]]] do|m|
+        [[m._1, m._2, m._3]]
+      end
+      # method params
+      r.on [:params, _xs&_1] do|m|
+        _self.handle_normal_params(m._1[0]) +
+          _self.handle_default_params(m._1[1]) +
+          _self.handle_rest_param(m._1[2]) +
+          _self.handle_block_param(m._1[6])
+      end
+      r.on p.or(nil, true, false, Numeric, String, Symbol, []) do|m|
+        []
+      end
+      r.else do|sexp|
+        if sexp.is_a?(Array) && sexp.size > 0
+          if sexp[0].is_a?(Symbol) # some struct
+            sexp[1..-1].flat_map {|elm| _self.extract_from_sexp(elm) }
           else
-            puts "WARN: Unsupported AST data: #{sexp.inspect}"
-            []
+            sexp.flat_map{|elm| _self.extract_from_sexp(elm) }
           end
+        else
+          puts "WARN: Unsupported AST data: #{sexp.inspect}"
+          []
         end
       end
     end
 
-    private
-      def handle_massign_lhs(lhs)
-        return [] unless lhs
-        if lhs.size > 0 && lhs[0].is_a?(Symbol)
-          lhs = [lhs]
-        end
-        lhs.flat_map {|expr|
-          @rules.match(:massign_lhs_item, expr) do|r|
-            p = Patm
-            r.on [:@ident, p._1, [p._2, p._3]] do|m|
-              [[m._1, m._2, m._3]]
-            end
-            r.on [:mlhs_paren, p._1] do|m|
-              handle_massign_lhs(m._1)
-            end
-            r.on [:mlhs_add_star, p._1, p._2] do|m|
-              handle_massign_lhs(m._1) + handle_massign_lhs([m._2])
-            end
-            r.on [:field, p._xs] do
-              []
-            end
-            r.on [:@ivar, p._xs] do
-              []
-            end
-            r.else do|obj|
-              puts "WARN: Unsupported ast item in handle_massign_lhs: #{obj.inspect}"
-              []
-            end
-          end
-        }
+    define_matcher :handle_massign_lhs_item do|r, _self|
+      p = Patm
+      r.on [:@ident, p._1, [p._2, p._3]] do|m|
+        [[m._1, m._2, m._3]]
       end
+      r.on [:mlhs_paren, p._1] do|m|
+        _self.handle_massign_lhs(m._1)
+      end
+      r.on [:mlhs_add_star, p._1, p._2] do|m|
+        _self.handle_massign_lhs(m._1) + _self.handle_massign_lhs([m._2])
+      end
+      r.on [:field, p._xs] do
+        []
+      end
+      r.on [:@ivar, p._xs] do
+        []
+      end
+      r.else do|obj|
+        puts "WARN: Unsupported ast item in handle_massign_lhs: #{obj.inspect}"
+        []
+      end
+    end
 
-      def handle_normal_params(list)
-        handle_massign_lhs(list)
+    def handle_massign_lhs(lhs)
+      return [] unless lhs
+      if lhs.size > 0 && lhs[0].is_a?(Symbol)
+        lhs = [lhs]
       end
+      lhs.flat_map {|expr| handle_massign_lhs_item(expr) }
+    end
 
-      def handle_rest_param(rest)
-        @rules.match(:rest_param, rest) do|r|
-          p = Patm
-          r.on [:rest_param, [:@ident, p._1, [p._2, p._3]]] do|m|
-            [[m._1, m._2, m._3]]
-          end
-          r.on nil do
-            []
-          end
-          r.else do|obj|
-            puts "WARN: Unsupported ast item in handle_rest_params: #{obj.inspect}"
-            []
-          end
-        end
-      end
+    def handle_normal_params(list)
+      handle_massign_lhs(list)
+    end
 
-      def handle_block_param(block)
-        @rules.match(:block_param, block) do|r|
-          p = ::Patm
-          r.on [:blockarg, [:@ident, p._1, [p._2, p._3]]] do|m|
-            [[m._1, m._2, m._3]]
-          end
-          r.on nil do
-            []
-          end
-          r.else do|obj|
-            puts "WARN: Unsupported ast item in handle_block_params: #{obj.inspect}"
-            []
-          end
-        end
+    define_matcher :handle_rest_param do|r, _self|
+      p = Patm
+      r.on [:rest_param, [:@ident, p._1, [p._2, p._3]]] do|m|
+        [[m._1, m._2, m._3]]
       end
+      r.on nil do
+        []
+      end
+      r.else do|obj|
+        puts "WARN: Unsupported ast item in handle_rest_params: #{obj.inspect}"
+        []
+      end
+    end
 
-      def handle_default_params(list)
-        return [] unless list
-        p = Patm
-        list.flat_map {|expr|
-          @rules.match(:default_param, expr) do|r|
-            r.on [[:@ident, p._1, [p._2, p._3]], p._any] do|m|
-              [[m._1, m._2, m._3]]
-            end
-            r.else do
-              []
-            end
-          end
-        }
+    define_matcher :handle_block_param do|r|
+      p = ::Patm
+      r.on [:blockarg, [:@ident, p._1, [p._2, p._3]]] do|m|
+        [[m._1, m._2, m._3]]
       end
+      r.on nil do
+        []
+      end
+      r.else do|obj|
+        puts "WARN: Unsupported ast item in handle_block_params: #{obj.inspect}"
+        []
+      end
+    end
+
+    def handle_default_params(list)
+      return [] unless list
+      list.flat_map {|expr| handle_default_param(expr) }
+    end
+
+    define_matcher :handle_default_param do|r|
+      p = Patm
+      r.on [[:@ident, p._1, [p._2, p._3]], p._any] do|m|
+        [[m._1, m._2, m._3]]
+      end
+      r.else do
+        []
+      end
+    end
   end
 end
