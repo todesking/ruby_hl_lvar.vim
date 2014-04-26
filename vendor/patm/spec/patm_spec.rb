@@ -114,12 +114,12 @@ describe "Usage:" do
         end
       end
 
-      define_matcher :match2 do|r|
+      define_matcher :match2 do|r, _self|
         r.on [1] do
           1
         end
         r.on [1, ::Patm._xs & ::Patm._1] do|m|
-          m._1
+          _self.match1(m._1)
         end
       end
     end
@@ -129,8 +129,7 @@ describe "Usage:" do
     o.match1([1, 2]).should == "[1, 2]"
 
     o.match2([1]).should == 1
-    o.match2([1, 2, 3]).should == [2, 3]
-    o.match2(111).should == nil
+    o.match2([1, 2, 3]).should == "[2, 3]"
   end
 end
 

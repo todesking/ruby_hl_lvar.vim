@@ -295,11 +295,11 @@ module Patm
   end
 
   class Rule
-    def initialize(compile = true, &block)
+    def initialize(compile = true, _self = nil, &block)
       @compile = compile
       # { Pattern => Proc }
       @rules = []
-      block[self]
+      block[self, _self]
     end
 
     def on(pat, &block)
@@ -334,8 +334,8 @@ module Patm
       @compile = compile
       @rules = {}
     end
-    def match(rule_name, obj, &rule)
-      (@rules[rule_name] ||= ::Patm::Rule.new(@compile, &rule)).apply(obj)
+    def match(rule_name, obj, _self = nil, &rule)
+      (@rules[rule_name] ||= ::Patm::Rule.new(@compile, _self, &rule)).apply(obj)
     end
   end
 
@@ -382,7 +382,7 @@ module Patm
       @patm_rules ||= RuleCache.new
       rules = @patm_rules
       define_method name do|obj|
-        rules.match(name, obj, &rule)
+        rules.match(name, obj, self, &rule)
       end
     end
   end
