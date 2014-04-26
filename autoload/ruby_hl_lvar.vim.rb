@@ -44,8 +44,8 @@ module RubyHlLvar
     def extract_from_sexp(obj)
       @rules.match(:root, obj) do|r|
         p = Patm
-        __ = p::ANY
-        _xs = p::ARRAY_REST
+        __ = p._any
+        _xs = p._xs
 
         _1 = p._1
         _2 = p._2
@@ -111,10 +111,10 @@ module RubyHlLvar
             r.on [:mlhs_add_star, p._1, p._2] do|m|
               handle_massign_lhs(m._1) + handle_massign_lhs([m._2])
             end
-            r.on [:field, p::ARRAY_REST] do
+            r.on [:field, p._xs] do
               []
             end
-            r.on [:@ivar, p::ARRAY_REST] do
+            r.on [:@ivar, p._xs] do
               []
             end
             r.else do|obj|
@@ -164,10 +164,9 @@ module RubyHlLvar
       def handle_default_params(list)
         return [] unless list
         p = Patm
-        _any = p::ANY
         list.flat_map {|expr|
           @rules.match(:default_param, expr) do|r|
-            r.on [[:@ident, p._1, [p._2, p._3]], _any] do|m|
+            r.on [[:@ident, p._1, [p._2, p._3]], p._any] do|m|
               [[m._1, m._2, m._3]]
             end
             r.else do

@@ -1,33 +1,30 @@
 module Patm
   class Pattern
-    def execute(match, obj); true; end
-
-    def rest?
-      false
-    end
 
     def self.build_from(plain)
       case plain
       when Pattern
         plain
       when Array
-        build_from_array(plain)
+        array = plain.map{|a| build_from(a)}
+        rest_index = array.index(&:rest?)
+        if rest_index
+          head = array[0...rest_index]
+          rest = array[rest_index]
+          tail = array[(rest_index+1)..-1]
+          Arr.new(head, rest, tail)
+        else
+          Arr.new(array)
+        end
       else
         Obj.new(plain)
       end
     end
 
-    def self.build_from_array(array)
-      array = array.map{|a| build_from(a)}
-      rest_index = array.index(&:rest?)
-      if rest_index
-        head = array[0...rest_index]
-        rest = array[rest_index]
-        tail = array[(rest_index+1)..-1]
-        Arr.new(head, rest, tail)
-      else
-        Arr.new(array)
-      end
+    def execute(match, obj); true; end
+
+    def rest?
+      false
     end
 
     def &(rhs)
@@ -272,19 +269,17 @@ module Patm
   end
 
   GROUP = 100.times.map{|i| Pattern::Group.new(i) }
-  ANY = Pattern::Any.new
-  ARRAY_REST = Pattern::ArrRest.new
 
   def self.or(*pats)
     Pattern::Or.new(pats.map{|p| Pattern.build_from(p) })
   end
 
   def self._any
-    ANY
+    @any ||= Pattern::Any.new
   end
 
   def self._xs
-    ARRAY_REST
+    @xs = Pattern::ArrRest.new
   end
 
   class <<self
@@ -296,7 +291,7 @@ module Patm
   end
 
   class Rule
-    def initialize(compile = false, &block)
+    def initialize(compile = true, &block)
       @compile = compile
       # { Pattern => Proc }
       @rules = []
@@ -313,9 +308,9 @@ module Patm
 
     def else(&block)
       if @compile
-        @rules << [ANY.compile, lambda {|m,o| block[o] }]
+        @rules << [::Patm._any.compile, lambda {|m,o| block[o] }]
       else
-        @rules << [ANY, lambda {|m,o| block[o] }]
+        @rules << [::Patm._any, lambda {|m,o| block[o] }]
       end
     end
 
@@ -331,7 +326,7 @@ module Patm
   end
 
   class RuleCache
-    def initialize(compile = false)
+    def initialize(compile = true)
       @compile = compile
       @rules = {}
     end
@@ -381,16 +376,4 @@ module Patm
   def self.match(plain_pat)
     CaseBinder.new Pattern.build_from(plain_pat)
   end
-
-  def self.match_array(head, rest_spat = nil, tail = [])
-    # TODO: deprecated
-    Match.new(
-      Pattern::Arr.new(
-        head.map{|e| Pattern.build_from(e)},
-        rest_spat,
-        tail.map{|e| Pattern.build_from(e)}
-      )
-    )
-  end
-
 end

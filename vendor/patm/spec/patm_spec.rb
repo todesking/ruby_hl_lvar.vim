@@ -51,7 +51,7 @@ describe "Usage:" do
 
   it 'with predefined Rule' do
     p = Patm
-    r = p::Rule.new do|r|
+    r = p::Rule.new(false) do|r|
       r.on [1, p._1, p._2] do|m|
         [m._1, m._2]
       end
@@ -133,12 +133,12 @@ describe Patm::Pattern do
     it { should_not match_to [1,2,3] }
   end
 
-  pattern Patm::ANY do
+  pattern Patm._any do
     it { should match_to 1 }
     it { should match_to ["foo", "bar"] }
   end
 
-  pattern [1, Patm::ANY, 3] do
+  pattern [1, Patm._any, 3] do
     it { should match_to [1, 2, 3] }
     it { should match_to [1, 0, 3] }
     it { should_not match_to [1, 0, 4] }
@@ -164,18 +164,18 @@ describe Patm::Pattern do
     it { should_not match_to(['x', 1, 2]).and_capture(1, 2) }
   end
 
-  pattern [0, 1, Patm::ARRAY_REST] do
+  pattern [0, 1, Patm._xs] do
     it { should_not match_to([0]) }
     it { should match_to([0, 1]) }
     it { should match_to([0, 1, 2, 3]) }
   end
 
-  pattern [0, 1, Patm::ARRAY_REST & Patm._1] do
+  pattern [0, 1, Patm._xs & Patm._1] do
     it { should match_to([0, 1]).and_capture([]) }
     it { should match_to([0, 1, 2, 3]).and_capture([2, 3]) }
   end
 
-  pattern [0, 1, Patm::ARRAY_REST, 2] do
+  pattern [0, 1, Patm._xs, 2] do
     it { should match_to([0,1,2]) }
     it { should match_to([0,1,10,20,30,2]) }
     it { should_not match_to([0,1]) }

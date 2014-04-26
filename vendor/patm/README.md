@@ -10,7 +10,7 @@ require 'patm'
 # With case(simple but slow)
 def match(obj)
   p = Patm
-  _xs = Patm::ARRAY_REST
+  _xs = Patm._xs
   case obj
   when m = Patm.match([:x, p._1, p._2])
     [m._2, m._1]
@@ -33,7 +33,7 @@ match([])
 # With pre-built Rule
 rule = Patm::Rule.new do|r|
   p = Patm
-  _xs = Patm::ARRAY_REST
+  _xs = Patm._xs
   r.on [:x, p._1, p._2] do|m|
     [m._2, m._1]
   end
