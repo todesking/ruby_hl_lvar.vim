@@ -114,11 +114,11 @@ describe "Usage:" do
         end
       end
 
-      define_matcher :match2 do|r, _self|
+      define_matcher :match2 do|r|
         r.on [1] do
           1
         end
-        r.on [1, ::Patm._xs & ::Patm._1] do|m|
+        r.on [1, ::Patm._xs & ::Patm._1] do|m, _self|
           _self.match1(m._1)
         end
       end

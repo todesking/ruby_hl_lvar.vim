@@ -89,6 +89,9 @@ class A
   end
 
   define_matcher :match2 do|r|
+    r.on [:a, Patm._xs & Patm._1] do|m, _self|
+      _self.match1(m._1)
+    end
     # ...
   end
 end

@@ -39,7 +39,7 @@ module RubyHlLvar
       extract_from_sexp(sexp)
     end
 
-    define_matcher :extract_from_sexp do|r, _self|
+    define_matcher :extract_from_sexp do|r|
       p = Patm
       __ = p._any
       _xs = p._xs
@@ -50,15 +50,15 @@ module RubyHlLvar
       _4 = p._4
 
       # single assignment
-      r.on [:assign, [:var_field, [:@ident, _1, [_2, _3]]], _4] do|m|
+      r.on [:assign, [:var_field, [:@ident, _1, [_2, _3]]], _4] do|m, _self|
         [[m._1, m._2, m._3]] + _self.extract_from_sexp(m._4)
       end
       # mass assignment
-      r.on [:massign, _1, _2] do|m|
+      r.on [:massign, _1, _2] do|m, _self|
         _self.handle_massign_lhs(m._1) + _self.extract_from_sexp(m._2)
       end
       # +=
-      r.on [:opassign, [:var_field, [:@ident, _1, [_2, _3]]], __, _4] do|m|
+      r.on [:opassign, [:var_field, [:@ident, _1, [_2, _3]]], __, _4] do|m, _self|
         [[m._1, m._2, m._3]] + _self.extract_from_sexp(m._4)
       end
       # local variable reference
@@ -66,7 +66,7 @@ module RubyHlLvar
         [[m._1, m._2, m._3]]
       end
       # method params
-      r.on [:params, _xs&_1] do|m|
+      r.on [:params, _xs&_1] do|m, _self|
         _self.handle_normal_params(m._1[0]) +
           _self.handle_default_params(m._1[1]) +
           _self.handle_rest_param(m._1[2]) +
@@ -75,7 +75,7 @@ module RubyHlLvar
       r.on p.or(nil, true, false, Numeric, String, Symbol, []) do|m|
         []
       end
-      r.else do|sexp|
+      r.else do|sexp, _self|
         if sexp.is_a?(Array) && sexp.size > 0
           if sexp[0].is_a?(Symbol) # some struct
             sexp[1..-1].flat_map {|elm| _self.extract_from_sexp(elm) }
@@ -89,15 +89,15 @@ module RubyHlLvar
       end
     end
 
-    define_matcher :handle_massign_lhs_item do|r, _self|
+    define_matcher :handle_massign_lhs_item do|r|
       p = Patm
       r.on [:@ident, p._1, [p._2, p._3]] do|m|
         [[m._1, m._2, m._3]]
       end
-      r.on [:mlhs_paren, p._1] do|m|
+      r.on [:mlhs_paren, p._1] do|m, _self|
         _self.handle_massign_lhs(m._1)
       end
-      r.on [:mlhs_add_star, p._1, p._2] do|m|
+      r.on [:mlhs_add_star, p._1, p._2] do|m, _self|
         _self.handle_massign_lhs(m._1) + _self.handle_massign_lhs([m._2])
       end
       r.on [:field, p._xs] do

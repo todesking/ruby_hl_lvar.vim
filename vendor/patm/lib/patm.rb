@@ -295,11 +295,12 @@ module Patm
   end
 
   class Rule
-    def initialize(compile = true, _self = nil, &block)
+    def initialize(compile = true, &block)
       @compile = compile
       # { Pattern => Proc }
       @rules = []
-      block[self, _self]
+      @else = ->(obj){nil}
+      block[self]
     end
 
     def on(pat, &block)
@@ -311,21 +312,17 @@ module Patm
     end
 
     def else(&block)
-      if @compile
-        @rules << [::Patm._any.compile, lambda {|m,o| block[o] }]
-      else
-        @rules << [::Patm._any, lambda {|m,o| block[o] }]
-      end
+      @else = block
     end
 
-    def apply(obj)
+    def apply(obj, _self = nil)
       match = Match.new
       @rules.each do|(pat, block)|
         if pat.execute(match, obj)
-          return block.call(match, obj)
+          return block.call(match, _self)
         end
       end
-      nil
+      @else[obj, _self]
     end
   end
 
@@ -335,7 +332,7 @@ module Patm
       @rules = {}
     end
     def match(rule_name, obj, _self = nil, &rule)
-      (@rules[rule_name] ||= ::Patm::Rule.new(@compile, _self, &rule)).apply(obj)
+      (@rules[rule_name] ||= ::Patm::Rule.new(@compile, &rule)).apply(obj, _self)
     end
   end
 
