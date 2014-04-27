@@ -19,7 +19,7 @@ function! ruby_hl_lvar#redraw() abort
 
 	" Set match if exists
 	if get(b:, 'ruby_hl_lvar_enabled', 1) && exists('b:ruby_hl_lvar_match_pattern')
-		let w:ruby_hl_lvar_match_id = matchadd(g:ruby_hl_lvar_hl_group, b:ruby_hl_lvar_match_pattern)
+		let w:ruby_hl_lvar_match_id = matchadd(g:ruby_hl_lvar_hl_group, b:ruby_hl_lvar_match_pattern, 0)
 		let w:ruby_hl_lvar_hl_version = b:ruby_hl_lvar_hl_version
 	endif
 endfunction
