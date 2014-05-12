@@ -5,22 +5,39 @@ execute 'rubyfile '.s:self_path.'.rb'
 let s:hl_version = 0
 
 function! ruby_hl_lvar#redraw() abort
-	let bufnr = bufnr('%')
+	let curwinnr=winnr()
+	let prevwinnr=winnr('#')
+
+	let nr = 1
+	let lastnr = winnr('$')
+	while nr <= lastnr
+		execute "normal! ".nr."\<C-w>w"
+		call s:redraw_window()
+		let nr += 1
+	endwhile
+
+	execute "normal! ".prevwinnr."\<C-w>w"
+	execute "normal! ".curwinnr."\<C-w>w"
+endfunction
+
+function! s:redraw_window()
+	let wv = get(w:, 'ruby_hl_lvar_hl_version', 0)
+	let bv = get(b:, 'ruby_hl_lvar_hl_version', 0)
 
 	" Remove current match if exists and its not for current buffer
-	if exists('w:ruby_hl_lvar_hl_version')
-		if exists('b:ruby_hl_lvar_hl_version') && w:ruby_hl_lvar_hl_version == b:ruby_hl_lvar_hl_version
+	if wv
+		if bv && (wv == bv)
 			return
 		else
 			call s:try_matchdelete(w:ruby_hl_lvar_match_id)
-			unlet w:ruby_hl_lvar_hl_version
+			let w:ruby_hl_lvar_hl_version = 0
 		endif
 	endif
 
 	" Set match if exists
-	if get(b:, 'ruby_hl_lvar_enabled', 1) && exists('b:ruby_hl_lvar_match_pattern')
+	if get(b:, 'ruby_hl_lvar_enabled', 1) && get(b:, 'ruby_hl_lvar_match_pattern', '') != ''
 		let w:ruby_hl_lvar_match_id = matchadd(g:ruby_hl_lvar_hl_group, b:ruby_hl_lvar_match_pattern, 0)
-		let w:ruby_hl_lvar_hl_version = b:ruby_hl_lvar_hl_version
+		let w:ruby_hl_lvar_hl_version = bv
 	endif
 endfunction
 
