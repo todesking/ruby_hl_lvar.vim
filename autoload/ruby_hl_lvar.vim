@@ -16,7 +16,9 @@ function! ruby_hl_lvar#redraw() abort
 		let nr += 1
 	endwhile
 
-	execute "normal! ".prevwinnr."\<C-w>w"
+	if prevwinnr > 0
+		execute "normal! ".prevwinnr."\<C-w>w"
+	endif
 	execute "normal! ".curwinnr."\<C-w>w"
 endfunction
 
