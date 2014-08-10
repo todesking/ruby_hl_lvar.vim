@@ -99,6 +99,9 @@ function! ruby_hl_lvar#refresh(force) abort
 	if !a:force && exists('b:ruby_hl_lvar_enabled') && !b:ruby_hl_lvar_enabled
 		return
 	endif
+	if mode() =~# "^[vV\<C-v>]"
+		return
+	endif
 	if exists('b:ruby_hl_lvar_match_pattern')
 		unlet b:ruby_hl_lvar_match_pattern
 	endif
