@@ -99,9 +99,15 @@ function! ruby_hl_lvar#refresh(force) abort
 	if !a:force && exists('b:ruby_hl_lvar_enabled') && !b:ruby_hl_lvar_enabled
 		return
 	endif
+
+	" https://github.com/todesking/ruby_hl_lvar.vim/pull/3
+	" Auto refreshing function triggered by TextChanged event is disabling
+	" https://github.com/t9md/vim-textmanip that continuously reselect previous selection.
+	" This code will check if in visual mode, and if so, it won't refresh (redraw) buffer.
 	if mode() =~# "^[vV\<C-v>]"
 		return
 	endif
+
 	if exists('b:ruby_hl_lvar_match_pattern')
 		unlet b:ruby_hl_lvar_match_pattern
 	endif
