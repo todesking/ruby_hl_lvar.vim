@@ -7,7 +7,8 @@ module RubyHlLvar
     def self.extract_lvars_from(bufnr)
       with_error_handling do
         source = ::Vim.evaluate("getbufline(#{bufnr}, 1, '$')").join("\n")
-        return_to_vim 's:ret', RubyHlLvar::Extractor.new.extract(source).map{|(n,l,c)| [n,l,c+1]}
+        show_warnings = ::Vim.evaluate("g:ruby_hl_lvar_show_warnings") != 0
+        return_to_vim 's:ret', RubyHlLvar::Extractor.new(show_warnings).extract(source).map{|(n,l,c)| [n,l,c+1]}
       end
     end
 
@@ -32,6 +33,14 @@ end
 module RubyHlLvar
   class Extractor
     extend ::Patm::DSL
+
+    def initialize(show_warning = false)
+      @show_warning = show_warning
+    end
+
+    def warn(message)
+      puts "[ruby_hl_lvar.vim] WARN: #{message}" if @show_warning
+    end
 
     # source:String -> [ [lvar_name:String, line:Numeric, col:Numeric]... ]
     def extract(source)
@@ -83,7 +92,7 @@ module RubyHlLvar
             sexp.flat_map{|elm| _self.extract_from_sexp(elm) }
           end
         else
-          puts "WARN: Unsupported AST data: #{sexp.inspect}"
+          warn "Unsupported AST data: #{sexp.inspect}"
           []
         end
       end
@@ -107,7 +116,7 @@ module RubyHlLvar
         []
       end
       r.else do|obj|
-        puts "WARN: Unsupported ast item in handle_massign_lhs: #{obj.inspect}"
+        warn "Unsupported ast item in handle_massign_lhs: #{obj.inspect}"
         []
       end
     end
@@ -133,7 +142,7 @@ module RubyHlLvar
         []
       end
       r.else do|obj|
-        puts "WARN: Unsupported ast item in handle_rest_params: #{obj.inspect}"
+        warn "Unsupported ast item in handle_rest_params: #{obj.inspect}"
         []
       end
     end
@@ -147,7 +156,7 @@ module RubyHlLvar
         []
       end
       r.else do|obj|
-        puts "WARN: Unsupported ast item in handle_block_params: #{obj.inspect}"
+        warn "Unsupported ast item in handle_block_params: #{obj.inspect}"
         []
       end
     end

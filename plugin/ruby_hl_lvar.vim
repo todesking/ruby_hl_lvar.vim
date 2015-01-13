@@ -9,6 +9,9 @@ let g:ruby_hl_lvar_hl_group =
 let g:ruby_hl_lvar_auto_enable =
 	\ get(g:, 'ruby_hl_lvar_auto_enable', 1)
 
+let g:ruby_hl_lvar_show_warnings =
+	\ get(g:, 'ruby_hl_lvar_show_warnings', 0)
+
 augroup ruby_hl_lvar
 	autocmd!
 	autocmd! Filetype * call Ruby_hl_lvar_filetype()
