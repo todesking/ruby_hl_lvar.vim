@@ -39,7 +39,7 @@ module RubyHlLvar
     end
 
     def warn(message)
-      puts "[ruby_hl_lvar.vim] WARN: #{message}" if @show_warning
+      # puts "[ruby_hl_lvar.vim] WARN: #{message}" if @show_warning
     end
 
     # source:String -> [ [lvar_name:String, line:Numeric, col:Numeric]... ]
