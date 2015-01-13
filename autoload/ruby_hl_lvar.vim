@@ -58,7 +58,6 @@ function! ruby_hl_lvar#extract_lvars(buffer) abort
 endfunction
 
 function! ruby_hl_lvar#disable(force) abort
-	let bufnr = bufnr('%')
 	if exists('b:ruby_hl_lvar_match_pattern')
 		unlet b:ruby_hl_lvar_match_pattern
 		unlet b:ruby_hl_lvar_hl_version
@@ -83,7 +82,6 @@ function! ruby_hl_lvar#enable(force) abort
 	if !a:force && exists('b:ruby_hl_lvar_enabled') && !b:ruby_hl_lvar_enabled
 		return
 	endif
-	let bufnr = bufnr('%')
 	call ruby_hl_lvar#disable(a:force)
 	if !exists('b:ruby_hl_lvar_match_pattern')
 		call ruby_hl_lvar#update_match_pattern('%')
@@ -115,7 +113,6 @@ function! ruby_hl_lvar#refresh(force) abort
 endfunction
 
 function! ruby_hl_lvar#update_match_pattern(buffer) abort
-	let bufnr = bufnr(a:buffer)
 	let matches = map(ruby_hl_lvar#extract_lvars(a:buffer), '
 		\ ''\%''.v:val[1].''l''.''\%''.v:val[2].''c''.repeat(''.'', strchars(v:val[0]))
 		\ ')
