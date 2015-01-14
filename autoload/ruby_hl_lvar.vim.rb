@@ -2,6 +2,11 @@
 require 'ripper'
 require File.join(File.dirname(__FILE__), '..', 'vendor', 'patm', 'lib', 'patm.rb')
 
+def Vim.message(msg)
+  # ::Vim.message and ::Kernel.puts seems weird behavior
+  ::Vim.command("echo '#{msg.gsub(/'/, "''")}'")
+end
+
 module RubyHlLvar
   module Vim
     def self.extract_lvars_from(bufnr)
@@ -39,7 +44,7 @@ module RubyHlLvar
     end
 
     def warn(message)
-      # puts "[ruby_hl_lvar.vim] WARN: #{message}" if @show_warning
+      ::Vim.message "[ruby_hl_lvar.vim] WARN: #{message}" if @show_warning
     end
 
     # source:String -> [ [lvar_name:String, line:Numeric, col:Numeric]... ]
