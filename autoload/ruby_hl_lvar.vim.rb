@@ -62,6 +62,8 @@ module RubyHlLvar
       _2 = p._2
       _3 = p._3
       _4 = p._4
+      _5 = p._5
+      _6 = p._6
 
       # single assignment
       r.on [:assign, [:var_field, [:@ident, _1, [_2, _3]]], _4] do|m, _self|
@@ -78,6 +80,10 @@ module RubyHlLvar
       # local variable reference
       r.on [:var_ref, [:@ident, _1, [_2, _3]]] do|m|
         [[m._1, m._2, m._3]]
+      end
+      # rescue
+      r.on [:rescue, _1, [:var_field, [:@ident, _2, [_3, _4]]], _5, _6] do|m, _self|
+        [[m._2, m._3, m._4]] + _self.extract_from_sexp(m._1) + _self.extract_from_sexp(m._5) + _self.extract_from_sexp(m._6)
       end
       # method params
       r.on [:params, _xs&_1] do|m, _self|
