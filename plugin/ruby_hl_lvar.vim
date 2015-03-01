@@ -28,7 +28,7 @@ function! Ruby_hl_lvar_filetype()
 	let groupname = 'vim_hl_lvar_'.bufnr('%')
 	execute 'augroup '.groupname
 		autocmd!
-		if &filetype ==# 'ruby'
+		if &filetype =~# '\<ruby\>'
 			if g:ruby_hl_lvar_auto_enable
 				call ruby_hl_lvar#refresh(1)
 				autocmd TextChanged <buffer> call ruby_hl_lvar#refresh(0)
