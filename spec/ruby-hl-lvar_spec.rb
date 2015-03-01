@@ -125,5 +125,11 @@ describe RubyHlLvar::Extractor do
     context "+=" do
       it { "a += 1".should_extract_to [["a", 1, 0]] }
     end
+
+    context "rescue variable" do
+      it { "begin\nrescue => e\nend".should_extract_to [["e", 2, 10]]}
+      it { "begin\nrescue => e\ne\nend".should_extract_to [["e", 2, 10], ["e", 3, 0]]}
+      it { "begin\nrescue => e1\nrescue => e2\nend".should_extract_to [["e1", 2, 10], ["e2", 3, 10]]}
+    end
   end
 end
