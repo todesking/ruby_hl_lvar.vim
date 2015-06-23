@@ -152,6 +152,12 @@ module RubyHlLvar
       r.on nil do
         []
       end
+      r.on 0 do
+        []
+      end
+      r.on [:rest_param, nil] do
+        []
+      end
       r.else do|obj|
         warn "Unsupported ast item in handle_rest_params: #{obj.inspect}"
         []
