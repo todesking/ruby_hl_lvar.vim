@@ -4,6 +4,8 @@ execute 'rubyfile '.s:self_path.'.rb'
 
 let s:hl_version = 0
 
+let s:exist_matchaddpos = exists('*matchaddpos')
+
 function! ruby_hl_lvar#redraw() abort
 	let curwinnr=winnr()
 	let prevwinnr=winnr('#')
@@ -30,36 +32,67 @@ function! s:redraw_window()
 	if wv
 		if bv && (wv == bv)
 			return
+		endif
+
+		if s:exist_matchaddpos
+			if exists('w:ruby_hl_lvar_match_ids')
+				for id in w:ruby_hl_lvar_match_ids
+					call s:try_matchdelete(id)
+				endfor
+			endif
 		else
 			call s:try_matchdelete(w:ruby_hl_lvar_match_id)
-			let w:ruby_hl_lvar_hl_version = 0
 		endif
+
+		let w:ruby_hl_lvar_hl_version = 0
+	endif
+
+	if !get(b:, 'ruby_hl_lvar_enabled', 1)
+		return
 	endif
 
 	" Set match if exists
-	if get(b:, 'ruby_hl_lvar_enabled', 1) && get(b:, 'ruby_hl_lvar_match_pattern', '') != ''
-		let w:ruby_hl_lvar_match_id = matchadd(g:ruby_hl_lvar_hl_group, b:ruby_hl_lvar_match_pattern, 0)
-		let w:ruby_hl_lvar_hl_version = bv
+	if s:exist_matchaddpos
+		if get(b:, 'ruby_hl_lvar_match_poses', []) != []
+			let w:ruby_hl_lvar_match_ids = []
+			let size = len(b:ruby_hl_lvar_match_poses)
+			let i = 0
+			while i < size
+				let poses = b:ruby_hl_lvar_match_poses[i : i + 7]
+				let m = matchaddpos(g:ruby_hl_lvar_hl_group, poses, 0)
+				call add(w:ruby_hl_lvar_match_ids, m)
+				let i += 8
+			endwhile
+		endif
+	else
+		if get(b:, 'ruby_hl_lvar_match_pattern', '') != ''
+			let w:ruby_hl_lvar_match_id = matchadd(g:ruby_hl_lvar_hl_group, b:ruby_hl_lvar_match_pattern, 0)
+		endif
 	endif
+
+	let w:ruby_hl_lvar_hl_version = bv
 endfunction
 
 " return: [[var_name, row, col_start, col_end]...]
 function! ruby_hl_lvar#extract_lvars(buffer) abort
-  let bufnr = bufnr(a:buffer)
-  if exists('s:ret')
-    unlet s:ret
-  endif
-  let t = reltime()
-  execute 'ruby RubyHlLvar::Vim.extract_lvars_from '.bufnr
-  let b:ruby_hl_lvar_time = str2float(reltimestr(reltime(t)))
-  let ret = s:ret
-  unlet s:ret
-  return ret
+	let bufnr = bufnr(a:buffer)
+	if exists('s:ret')
+		unlet s:ret
+	endif
+	let t = reltime()
+	execute 'ruby RubyHlLvar::Vim.extract_lvars_from '.bufnr
+	let b:ruby_hl_lvar_time = str2float(reltimestr(reltime(t)))
+	let ret = s:ret
+	unlet s:ret
+	return ret
 endfunction
 
 function! ruby_hl_lvar#disable(force) abort
 	if exists('b:ruby_hl_lvar_match_pattern')
 		unlet b:ruby_hl_lvar_match_pattern
+		unlet b:ruby_hl_lvar_hl_version
+	elseif exists('b:ruby_hl_lvar_match_poses')
+		unlet b:ruby_hl_lvar_match_poses
 		unlet b:ruby_hl_lvar_hl_version
 	endif
 	if a:force
@@ -113,10 +146,17 @@ function! ruby_hl_lvar#refresh(force) abort
 endfunction
 
 function! ruby_hl_lvar#update_match_pattern(buffer) abort
-	let matches = map(ruby_hl_lvar#extract_lvars(a:buffer), '
+	if s:exist_matchaddpos
+		let b:ruby_hl_lvar_match_poses = map(ruby_hl_lvar#extract_lvars(a:buffer), '
+		\   [v:val[1], v:val[2], strlen(v:val[0])]
+		\ ')
+	else
+		let matches = map(ruby_hl_lvar#extract_lvars(a:buffer), '
 		\ ''\%''.v:val[1].''l''.''\%''.v:val[2].''c''.repeat(''.'', strchars(v:val[0]))
 		\ ')
-	let b:ruby_hl_lvar_match_pattern = join(matches, '\|')
+		let b:ruby_hl_lvar_match_pattern = join(matches, '\|')
+	endif
+
 	let s:hl_version += 1
 	let b:ruby_hl_lvar_hl_version = s:hl_version
 endfunction
