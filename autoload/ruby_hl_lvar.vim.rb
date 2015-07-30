@@ -103,7 +103,7 @@ module RubyHlLvar
             sexp.flat_map{|elm| _self.extract_from_sexp(elm) }
           end
         else
-          warn "Unsupported AST data: #{sexp.inspect}"
+          _self.warn "Unsupported AST data: #{sexp.inspect}"
           []
         end
       end
@@ -126,8 +126,8 @@ module RubyHlLvar
       r.on [:@ivar, p._xs] do
         []
       end
-      r.else do|obj|
-        warn "Unsupported ast item in handle_massign_lhs: #{obj.inspect}"
+      r.else do|obj, _self|
+        _self.warn "Unsupported ast item in handle_massign_lhs: #{obj.inspect}"
         []
       end
     end
@@ -158,8 +158,8 @@ module RubyHlLvar
       r.on [:rest_param, nil] do
         []
       end
-      r.else do|obj|
-        warn "Unsupported ast item in handle_rest_params: #{obj.inspect}"
+      r.else do|obj, _self|
+        _self.warn "Unsupported ast item in handle_rest_params: #{obj.inspect}"
         []
       end
     end
@@ -172,8 +172,8 @@ module RubyHlLvar
       r.on nil do
         []
       end
-      r.else do|obj|
-        warn "Unsupported ast item in handle_block_params: #{obj.inspect}"
+      r.else do|obj, _self|
+        _self.warn "Unsupported ast item in handle_block_params: #{obj.inspect}"
         []
       end
     end
