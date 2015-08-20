@@ -27,6 +27,9 @@ describe RubyHlLvar::Extractor do
     context 'complex mass assignment' do
       it { 'a, (b, c) = foo'.should_extract_to [['a', 1, 0], ['b', 1, 4], ['c', 1, 7]] }
       it { 'a, *b = foo'.should_extract_to [['a', 1, 0], ['b', 1, 4]] }
+      it { '*a, b = foo'.should_extract_to [['a', 1, 1], ['b', 1, 4]] }
+      it { 'a, *b, c = foo'.should_extract_to [['a', 1, 0], ['b', 1, 4], ['c', 1, 7]] }
+      it { "a = []\nb=1\na[0], a[b] = foo".should_extract_to [['a', 1, 0], ['b', 2, 0], ['a', 3, 0], ['a', 3, 6], ['b', 3, 8]]}
     end
 
     context "lhs of assignment" do

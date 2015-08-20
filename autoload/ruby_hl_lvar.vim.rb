@@ -120,10 +120,16 @@ module RubyHlLvar
       r.on [:mlhs_add_star, p._1, p._2] do|m, _self|
         _self.handle_massign_lhs(m._1) + _self.handle_massign_lhs([m._2])
       end
-      r.on [:field, p._xs] do
+      r.on [:mlhs_add_star, p._1, p._2, p._3] do|m, _self|
+        _self.handle_massign_lhs(m._1) + _self.handle_massign_lhs([m._2]) + _self.handle_massign_lhs(m._3)
+      end
+      r.on [:aref_field, p._1, p._2] do |m, _self|
+        _self.extract_from_sexp(m._1) + _self.extract_from_sexp(m._2)
+      end
+      r.on [p.or(:field, :@ivar, :@cvar, :@gvar, :@const), p._xs] do
         []
       end
-      r.on [:@ivar, p._xs] do
+      r.on nil do
         []
       end
       r.else do|obj, _self|
