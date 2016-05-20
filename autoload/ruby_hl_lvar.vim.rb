@@ -90,6 +90,7 @@ module RubyHlLvar
         _self.handle_normal_params(m._1[0]) +
           _self.handle_default_params(m._1[1]) +
           _self.handle_rest_param(m._1[2]) +
+          _self.handle_normal_params(m._1[3]) +
           _self.handle_block_param(m._1[6])
       end
       r.on p.or(nil, true, false, Numeric, String, Symbol, []) do|m|
