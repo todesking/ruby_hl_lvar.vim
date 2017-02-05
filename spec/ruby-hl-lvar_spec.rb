@@ -1,4 +1,7 @@
 require 'pry'
+
+# Mock `Vim` module
+module Vim; end
 load File.join(File.dirname(__FILE__), "..", "autoload", "ruby_hl_lvar.vim.rb")
 
 class String
@@ -6,6 +9,7 @@ class String
     RubyHlLvar::Extractor.new.extract(self).should == expected
   end
 end
+
 
 describe RubyHlLvar::Extractor do
   let(:etor){ RubyHlLvar::Extractor.new }
@@ -133,6 +137,11 @@ describe RubyHlLvar::Extractor do
       it { "begin\nrescue => e\nend".should_extract_to [["e", 2, 10]]}
       it { "begin\nrescue => e\ne\nend".should_extract_to [["e", 2, 10], ["e", 3, 0]]}
       it { "begin\nrescue => e1\nrescue => e2\nend".should_extract_to [["e1", 2, 10], ["e2", 3, 10]]}
+    end
+
+    context "for params" do
+      it { "for x in [] do\nend".should_extract_to [["x", 1, 4]]}
+      it { "for (x, *y, z) in [] do\nend".should_extract_to [["x", 1, 5], ["y", 1, 9], ["z", 1, 12]]}
     end
   end
 end
