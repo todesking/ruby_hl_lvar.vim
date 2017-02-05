@@ -93,6 +93,10 @@ module RubyHlLvar
           _self.handle_normal_params(m._1[3]) +
           _self.handle_block_param(m._1[6])
       end
+      # for
+      r.on [:for, _1, _2, _3] do|m, _self|
+        _self.handle_for_param(m._1) + _self.extract_from_sexp(m._2) + _self.extract_from_sexp(m._3)
+      end
       r.on p.or(nil, true, false, Numeric, String, Symbol, []) do|m|
         []
       end
@@ -197,6 +201,16 @@ module RubyHlLvar
       end
       r.else do
         []
+      end
+    end
+
+    define_matcher :handle_for_param do|r|
+      p = Patm
+      r.on [:var_field, [:@ident, p._1, [p._2, p._3]]] do|m, _self|
+        [[m._1, m._2, m._3]]
+      end
+      r.else do|sexp, _self|
+        _self.handle_massign_lhs(sexp)
       end
     end
   end
