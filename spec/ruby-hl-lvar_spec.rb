@@ -142,6 +142,8 @@ describe RubyHlLvar::Extractor do
     context "for params" do
       it { "for x in [] do\nend".should_extract_to [["x", 1, 4]]}
       it { "for (x, *y, z) in [] do\nend".should_extract_to [["x", 1, 5], ["y", 1, 9], ["z", 1, 12]]}
+      it { "for X in [] do\nend".should_extract_to []}
+      it { "for @x in [] do\nend".should_extract_to []}
     end
   end
 end
