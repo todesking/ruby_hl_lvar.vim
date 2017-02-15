@@ -209,6 +209,9 @@ module RubyHlLvar
       r.on [:var_field, [:@ident, p._1, [p._2, p._3]]] do|m, _self|
         [[m._1, m._2, m._3]]
       end
+      r.on [:var_field, p._xs] do|m, _self|
+        []
+      end
       r.else do|sexp, _self|
         _self.handle_massign_lhs(sexp)
       end
