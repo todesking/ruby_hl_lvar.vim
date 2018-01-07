@@ -34,7 +34,6 @@ function! Ruby_hl_lvar_filetype()
 		autocmd InsertEnter <buffer> call ruby_hl_lvar#disable(0)
 		autocmd InsertLeave <buffer> call ruby_hl_lvar#refresh(0)
 	augroup END
-	return
 endfunction
 
 nmap <Plug>(ruby_hl_lvar-enable) :<C-U>call ruby_hl_lvar#enable(1)<CR>
