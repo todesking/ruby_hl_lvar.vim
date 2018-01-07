@@ -14,7 +14,7 @@ let g:ruby_hl_lvar_show_warnings =
 
 augroup ruby_hl_lvar
 	autocmd!
-	autocmd Filetype ruby call Ruby_hl_lvar_filetype()
+	autocmd Filetype    * call Ruby_hl_lvar_filetype()
 	autocmd BufWinLeave * call ruby_hl_lvar#redraw()
 	autocmd WinEnter    * call ruby_hl_lvar#redraw()
 	autocmd WinLeave    * call ruby_hl_lvar#redraw()
@@ -23,6 +23,10 @@ augroup ruby_hl_lvar
 augroup END
 
 function! Ruby_hl_lvar_filetype()
+	if &filetype !~# '\<ruby\>'
+		return
+	endif
+
 	if !g:ruby_hl_lvar_auto_enable
 		return ruby_hl_lvar#disable(1)
 	endif
