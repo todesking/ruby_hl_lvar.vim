@@ -16,6 +16,7 @@ augroup ruby_hl_lvar
 	autocmd!
 	autocmd Filetype    * call Ruby_hl_lvar_filetype()
 	autocmd BufWinLeave * call ruby_hl_lvar#redraw()
+	autocmd BufWinEnter * call ruby_hl_lvar#redraw()
 	autocmd WinEnter    * call ruby_hl_lvar#redraw()
 	autocmd WinLeave    * call ruby_hl_lvar#redraw()
 	autocmd TabEnter    * call ruby_hl_lvar#redraw()
