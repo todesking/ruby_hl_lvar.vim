@@ -58,35 +58,35 @@ module RubyHlLvar
       __ = p._any
       _xs = p._xs
 
-      _1 = p._1
-      _2 = p._2
-      _3 = p._3
-      _4 = p._4
-      _5 = p._5
-      _6 = p._6
+      l_1 = p._1
+      l_2 = p._2
+      l_3 = p._3
+      l_4 = p._4
+      l_5 = p._5
+      l_6 = p._6
 
       # single assignment
-      r.on [:assign, [:var_field, [:@ident, _1, [_2, _3]]], _4] do|m, _self|
+      r.on [:assign, [:var_field, [:@ident, l_1, [l_2, l_3]]], l_4] do|m, _self|
         [[m._1, m._2, m._3]] + _self.extract_from_sexp(m._4)
       end
       # mass assignment
-      r.on [:massign, _1, _2] do|m, _self|
+      r.on [:massign, l_1, l_2] do|m, _self|
         _self.handle_massign_lhs(m._1) + _self.extract_from_sexp(m._2)
       end
       # +=
-      r.on [:opassign, [:var_field, [:@ident, _1, [_2, _3]]], __, _4] do|m, _self|
+      r.on [:opassign, [:var_field, [:@ident, l_1, [l_2, l_3]]], __, l_4] do|m, _self|
         [[m._1, m._2, m._3]] + _self.extract_from_sexp(m._4)
       end
       # local variable reference
-      r.on [:var_ref, [:@ident, _1, [_2, _3]]] do|m|
+      r.on [:var_ref, [:@ident, l_1, [l_2, l_3]]] do|m|
         [[m._1, m._2, m._3]]
       end
       # rescue
-      r.on [:rescue, _1, [:var_field, [:@ident, _2, [_3, _4]]], _5, _6] do|m, _self|
+      r.on [:rescue, l_1, [:var_field, [:@ident, l_2, [l_3, l_4]]], l_5, l_6] do|m, _self|
         [[m._2, m._3, m._4]] + _self.extract_from_sexp(m._1) + _self.extract_from_sexp(m._5) + _self.extract_from_sexp(m._6)
       end
       # method params
-      r.on [:params, _xs&_1] do|m, _self|
+      r.on [:params, _xs&l_1] do|m, _self|
         _self.handle_normal_params(m._1[0]) +
           _self.handle_default_params(m._1[1]) +
           _self.handle_rest_param(m._1[2]) +
@@ -94,7 +94,7 @@ module RubyHlLvar
           _self.handle_block_param(m._1[6])
       end
       # for
-      r.on [:for, _1, _2, _3] do|m, _self|
+      r.on [:for, l_1, l_2, l_3] do|m, _self|
         _self.handle_for_param(m._1) + _self.extract_from_sexp(m._2) + _self.extract_from_sexp(m._3)
       end
       r.on p.or(nil, true, false, Numeric, String, Symbol, []) do|m|
