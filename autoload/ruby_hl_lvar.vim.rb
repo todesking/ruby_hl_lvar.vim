@@ -122,6 +122,9 @@ module RubyHlLvar
       r.on [:@ident, p._1, [p._2, p._3]] do|m|
         [[m._1, m._2, m._3]]
       end
+      r.on [:mlhs, p._xs[:xs]] do|m, _self|
+        m[:xs].inject([]) {|lhss, l| lhss + _self.handle_massign_lhs(l) }
+      end
       r.on [:mlhs_paren, p._1] do|m, _self|
         _self.handle_massign_lhs(m._1)
       end
