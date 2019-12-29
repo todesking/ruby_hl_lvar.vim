@@ -137,6 +137,9 @@ module RubyHlLvar
       r.on [p.or(:field, :@ivar, :@cvar, :@gvar, :@const), p._xs] do
         []
       end
+      r.on [:rest_param, p._1] do|m, _self|
+        _self.handle_massign_lhs_item(m._1)
+      end
       r.on nil do
         []
       end
