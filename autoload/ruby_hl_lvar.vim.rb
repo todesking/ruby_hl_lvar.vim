@@ -116,6 +116,9 @@ module RubyHlLvar
 
     define_matcher :handle_massign_lhs_item do|r|
       p = Patm
+      r.on [:var_field, [:@ident, p._1, [p._2, p._3]]] do|m|
+        [[m._1, m._2, m._3]]
+      end
       r.on [:@ident, p._1, [p._2, p._3]] do|m|
         [[m._1, m._2, m._3]]
       end
