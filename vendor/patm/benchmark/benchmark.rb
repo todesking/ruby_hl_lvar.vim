@@ -53,8 +53,8 @@ end
   end
 end
 
-@rule = P::Rule.new(false, &@ruledef)
-@compiled_rule = P::Rule.new(true, &@ruledef)
+@rule = P::Rule.new(&@ruledef)
+@compiled_rule = P::Rule.new(&@ruledef).compile
 
 def match_with_rule(obj)
   @rule.apply(obj)
