@@ -59,7 +59,7 @@ function! s:redraw_window()
 			let i = 0
 			while i < size
 				let poses = b:ruby_hl_lvar_match_poses[i : i + 7]
-				let m = matchaddpos(g:ruby_hl_lvar_hl_group, poses, 0)
+				let m = matchaddpos(g:ruby_hl_lvar_hl_group, poses, g:ruby_hl_lvar_highlight_priority)
 				call add(w:ruby_hl_lvar_match_ids, m)
 				let i += 8
 			endwhile
