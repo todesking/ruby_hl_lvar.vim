@@ -66,7 +66,7 @@ function! s:redraw_window()
 		endif
 	else
 		if get(b:, 'ruby_hl_lvar_match_pattern', '') != ''
-			let w:ruby_hl_lvar_match_id = matchadd(g:ruby_hl_lvar_hl_group, b:ruby_hl_lvar_match_pattern, 0)
+			let w:ruby_hl_lvar_match_id = matchadd(g:ruby_hl_lvar_hl_group, b:ruby_hl_lvar_match_pattern, g:ruby_hl_lvar_highlight_priority)
 		endif
 	endif
 

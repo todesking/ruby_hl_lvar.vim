@@ -27,6 +27,10 @@ let g:ruby_hl_lvar_hl_group = 'RubyLocalVariable'
 " Default: 1
 let g:ruby_hl_lvar_auto_enable = 0
 
+" g:ruby_hl_lvar_hl_group highlight priority
+" Default: 0
+let g:ruby_hl_lvar_highlight_priority = 0
+
 " If you wish to control the plugin manually, map these functions.
 nmap <leader>he <Plug>(ruby_hl_lvar-enable)
 nmap <leader>hd <Plug>(ruby_hl_lvar-disable)
