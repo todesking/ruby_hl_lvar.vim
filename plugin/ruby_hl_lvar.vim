@@ -12,6 +12,9 @@ let g:ruby_hl_lvar_auto_enable =
 let g:ruby_hl_lvar_show_warnings =
 	\ get(g:, 'ruby_hl_lvar_show_warnings', 0)
 
+let g:ruby_hl_lvar_highlight_priority =
+	\ get(g:, 'ruby_hl_lvar_highlight_priority', 0)
+
 augroup ruby_hl_lvar
 	autocmd!
 	autocmd Filetype    * call Ruby_hl_lvar_filetype()
