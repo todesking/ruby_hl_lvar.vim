@@ -8,6 +8,10 @@ let s:exist_matchaddpos = exists('*matchaddpos')
 
 function! ruby_hl_lvar#redraw() abort
 	let curwinnr=winnr()
+
+	if getwinvar(curwinnr, "&filetype") ==# "qf"
+		return
+	endif
 	let prevwinnr=winnr('#')
 
 	let nr = 1
